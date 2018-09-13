@@ -4,11 +4,8 @@ import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
 import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.requireThat
-import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.transactions.LedgerTransaction
-import net.corda.core.utilities.ProgressTracker
-import net.corda.finance.contracts.asset.Cash
 
 // *****************
 // * Contract Code *
@@ -45,6 +42,18 @@ class JobContract : Contract {
 
             is Commands.FinishJob -> requireThat {
 
+                "one input should be produced" using (jobInputs.size == 1)
+                "one output should be produced" using (jobOutputs.size == 1)
+
+                val jobInput = jobInputs.single()
+                val jobOutput = jobOutputs.single()
+
+                "the input status must be set as started" using (jobInputs.single().status == JobStatus.STARTED)
+                "the output status should be set as finished" using (jobOutputs.single().status == JobStatus.COMPLETED)
+                "only the status must change" using (jobInput.copy(status = JobStatus.COMPLETED) == jobOutput)
+                "the update must be signed by the contractor of the " using (jobOutputs.single().contractor == jobInputs.single().contractor)
+                "the contractor should be signer" using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
+                
             }
 
             is Commands.ProposeForInspection -> requireThat {
