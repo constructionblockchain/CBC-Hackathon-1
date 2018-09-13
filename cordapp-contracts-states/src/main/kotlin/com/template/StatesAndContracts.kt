@@ -61,7 +61,17 @@ class JobContract : Contract {
             }
 
             is Commands.InspectAndReject -> requireThat {
+                // This insures we only have one input and one output
+                val jobOutput = jobOutputs.single()
+                val jobInput = jobInputs.single()
 
+                "Only status should have changed" using (jobOutput.contractor == jobInput.contractor
+                        && jobOutput.developer == jobInput.developer
+                        && jobOutput.description == jobInput.description)
+                "Status should show rejected" using (jobOutput.status == JobStatus.REJECTED)
+                "Job must have been previously started" using (jobInput.status == JobStatus.STARTED)
+
+                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
 
             is Commands.InspectAndAccept -> requireThat {
@@ -106,5 +116,5 @@ data class JobState(val description: String,
 }
 
 enum class JobStatus {
-    UNSTARTED, STARTED, COMPLETED
+    UNSTARTED, STARTED, COMPLETED, REJECTED
 }
