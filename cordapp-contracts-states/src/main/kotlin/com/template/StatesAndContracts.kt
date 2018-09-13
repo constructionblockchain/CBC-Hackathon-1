@@ -53,7 +53,7 @@ class JobContract : Contract {
             }
 
             is Commands.FinishJob -> requireThat {
-
+                
             }
 
             is Commands.ProposeForInspection -> requireThat {
