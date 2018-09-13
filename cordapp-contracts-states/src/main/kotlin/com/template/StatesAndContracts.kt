@@ -28,7 +28,8 @@ class JobContract : Contract {
         when(jobCommand.value) {
             is Commands.AgreeJob -> requireThat {
                 "no inputs should be consumed" using (jobInputs.isEmpty())
-                "one output should be produced" using (jobOutputs.size == 1) //TODO we might allow several jobs later
+                // TODO we might allow several jobs to be proposed at once later
+                "one output should be produced" using (jobOutputs.size == 1)
 
                 val jobOutput = jobOutputs.single()
                 "the developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
@@ -77,7 +78,7 @@ class JobContract : Contract {
         class InspectAndAccept : Commands // TODO - Ayman
         class Pay : Commands
 
-        //TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
+        // TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
     }
 }
 
