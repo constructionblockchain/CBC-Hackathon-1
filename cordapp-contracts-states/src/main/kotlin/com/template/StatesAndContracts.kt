@@ -3,14 +3,17 @@ package com.template
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
 import net.corda.core.contracts.ContractState
+import net.corda.core.contracts.requireThat
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.transactions.LedgerTransaction
+import net.corda.core.utilities.ProgressTracker
+import net.corda.finance.contracts.asset.Cash
 
 // *****************
 // * Contract Code *
 // *****************
-class TemplateContract : Contract {
+class JobContract : Contract {
     // This is used to identify our contract when building a transaction
     companion object {
         val ID = "com.template.TemplateContract"
@@ -18,32 +21,62 @@ class TemplateContract : Contract {
     // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
     // and output states does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
-        // Verification logic goes here.
+        val jobInputs = tx.inputsOfType<JobState>()
+        val jobOutputs = tx.outputsOfType<JobState>()
+        val jobCommand = tx.commandsOfType<JobContract.Commands>().single()
+
+        when(jobCommand.value) {
+            is Commands.AgreeJob -> requireThat {
+                "no inputs should be consumed" using (jobInputs.isEmpty())
+                "one output should be produced" using (jobOutputs.size == 1) //TODO we might allow several jobs later
+
+                val jobOutput = jobOutputs.single()
+                "the developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
+                "the status should be set as unstarted" using (jobOutput.status == JobStatus.UNSTARTED)
+
+                "the developer and contractor are required signer" using
+                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
+            }
+
+            is Commands.StartJob -> requireThat {
+                
+            }
+        }
+
+
+
+        // no inputs should be consumed
+        // one output should be produced
     }
 
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {
-        class Action : Commands
+        class AgreeJob : Commands
+        // TODO - allow contractor to reject job
+        class StartJob : Commands
+        class FinishJob : Commands
+        class ProposeForInspection : Commands
+        class InspectAndReject : Commands
+        class InspectAndAccept : Commands
+        class Pay : Commands
+
+        //TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
     }
 }
 
 // *********
 // * State *
 // *********
-data class JobState(val jobs: List<Job>,
+// TODO - allow for lists of subjobs
+// TODO - allow for percentage completion and payment
+// TODO - map descriptions to BIM XML
+data class JobState(val description: String,
+                    val status: JobStatus,
                     val developer: Party,
                     val contractor: Party) : ContractState {
 
     override val participants = listOf(developer, contractor)
-
-    val status = when {
-        jobs.all { it.status == JobStatus.COMPLETED } -> JobStatus.COMPLETED
-        jobs.all { it.status == JobStatus.UNSTARTED } -> JobStatus.UNSTARTED
-        else -> JobStatus.STARTED
-    }
 }
-
-data class Job(val description: String, val status: JobStatus)
 
 enum class JobStatus {
     UNSTARTED, STARTED, COMPLETED
