@@ -64,11 +64,6 @@ class JobContract : Contract {
 
             else -> throw IllegalArgumentException("Unrecognised command.")
         }
-
-
-
-        // no inputs should be consumed
-        // one output should be produced
     }
 
     // Used to indicate the transaction's intent.
