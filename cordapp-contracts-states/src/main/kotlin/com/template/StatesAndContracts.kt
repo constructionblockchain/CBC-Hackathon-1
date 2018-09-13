@@ -39,8 +39,30 @@ class JobContract : Contract {
             }
 
             is Commands.StartJob -> requireThat {
-                
+
             }
+
+            is Commands.FinishJob -> requireThat {
+
+            }
+
+            is Commands.ProposeForInspection -> requireThat {
+
+            }
+
+            is Commands.InspectAndReject -> requireThat {
+
+            }
+
+            is Commands.InspectAndAccept -> requireThat {
+
+            }
+
+            is Commands.Pay -> requireThat {
+
+            }
+
+            else -> throw IllegalArgumentException("Unrecognised command.")
         }
 
 
@@ -53,11 +75,11 @@ class JobContract : Contract {
     interface Commands : CommandData {
         class AgreeJob : Commands
         // TODO - allow contractor to reject job
-        class StartJob : Commands
-        class FinishJob : Commands
-        class ProposeForInspection : Commands
-        class InspectAndReject : Commands
-        class InspectAndAccept : Commands
+        class StartJob : Commands // TODO - Hristo
+        class FinishJob : Commands // TODO - Sebastian
+        class ProposeForInspection : Commands // TODO - Sven
+        class InspectAndReject : Commands // TODO - Cais
+        class InspectAndAccept : Commands // TODO - Ayman
         class Pay : Commands
 
         //TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
