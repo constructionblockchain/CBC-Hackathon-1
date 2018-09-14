@@ -103,7 +103,7 @@ class JobContract : Contract {
         class ProposeForInspection : Commands // TODO - Sven
         class InspectAndReject : Commands // TODO - Cais
         class InspectAndAccept : Commands // TODO - Ayman
-        class Pay : Commands
+        class Pay : Commands // TODO - Joel
 
         // TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
     }
