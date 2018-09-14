@@ -17,7 +17,7 @@ import java.lang.IllegalStateException
 // *********
 @InitiatingFlow
 @StartableByRPC
-class InspectionFlow(val linearId: UniqueIdentifier, val approved: Boolean) : FlowLogic<SignedTransaction>() {
+class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
