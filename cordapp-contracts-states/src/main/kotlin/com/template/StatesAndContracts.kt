@@ -1,9 +1,6 @@
 package com.template
 
-import net.corda.core.contracts.CommandData
-import net.corda.core.contracts.Contract
-import net.corda.core.contracts.ContractState
-import net.corda.core.contracts.requireThat
+import net.corda.core.contracts.*
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.transactions.LedgerTransaction
@@ -16,6 +13,7 @@ class JobContract : Contract {
     companion object {
         val ID = "com.template.JobContract"
     }
+
     // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
     // and output states does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
@@ -23,7 +21,7 @@ class JobContract : Contract {
         val jobOutputs = tx.outputsOfType<JobState>()
         val jobCommand = tx.commandsOfType<JobContract.Commands>().single()
 
-        when(jobCommand.value) {
+        when (jobCommand.value) {
             is Commands.AgreeJob -> requireThat {
                 "no inputs should be consumed" using (jobInputs.isEmpty())
                 // TODO we might allow several jobs to be proposed at once later
@@ -62,7 +60,7 @@ class JobContract : Contract {
                 "only the status must change" using (jobInput.copy(status = JobStatus.COMPLETED) == jobOutput)
                 "the update must be signed by the contractor of the " using (jobOutputs.single().contractor == jobInputs.single().contractor)
                 "the contractor should be signer" using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
-                
+
             }
 
             is Commands.ProposeForInspection -> requireThat {
@@ -100,6 +98,7 @@ class JobContract : Contract {
         class AgreeJob : Commands
         // TODO - allow contractor to reject job
         class StartJob : Commands
+
         class FinishJob : Commands
         class ProposeForInspection : Commands // TODO - Sven
         class InspectAndReject : Commands
@@ -120,7 +119,9 @@ class JobContract : Contract {
 data class JobState(val description: String,
                     val status: JobStatus,
                     val developer: Party,
-                    val contractor: Party) : ContractState {
+                    val contractor: Party,
+                    override val linearId: UniqueIdentifier = UniqueIdentifier()
+) : LinearState {
 
     override val participants = listOf(developer, contractor)
 }
