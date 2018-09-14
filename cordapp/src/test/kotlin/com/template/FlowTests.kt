@@ -6,15 +6,12 @@ import org.junit.Before
 import org.junit.Test
 
 class FlowTests {
-
     private val network = MockNetwork(listOf("com.template"))
     private val a = network.createNode()
     private val b = network.createNode()
 
     init {
-        listOf(a, b).forEach {
-            it.registerInitiatedFlow(Responder::class.java)
-        }
+        b.registerInitiatedFlow(AgreeJobFlowResponder::class.java)
     }
 
     @Before
@@ -24,7 +21,15 @@ class FlowTests {
     fun tearDown() = network.stopNodes()
 
     @Test
-    fun `dummy test`() {
+    fun `golden path agree job flow`() {
+        val flow = AgreeJobFlow(
+                description = "Fit some windows.",
+                contractor = b.info.legalIdentities[0],
+                notaryToUse = network.defaultNotaryIdentity)
 
+        val resultFuture = a.startFlow(flow)
+        network.runNetwork()
+        val result = resultFuture.get()
+        println(result)
     }
 }

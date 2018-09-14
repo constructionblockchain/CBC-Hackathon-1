@@ -5,6 +5,7 @@ import net.corda.core.contracts.Contract
 import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.requireThat
 import net.corda.core.identity.Party
+import net.corda.core.serialization.CordaSerializable
 import net.corda.core.transactions.LedgerTransaction
 
 // *****************
@@ -13,7 +14,7 @@ import net.corda.core.transactions.LedgerTransaction
 class JobContract : Contract {
     // This is used to identify our contract when building a transaction
     companion object {
-        val ID = "com.template.TemplateContract"
+        val ID = "com.template.JobContract"
     }
     // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
     // and output states does not throw an exception.
@@ -98,10 +99,10 @@ class JobContract : Contract {
     interface Commands : CommandData {
         class AgreeJob : Commands
         // TODO - allow contractor to reject job
-        class StartJob : Commands // TODO - Hristo
-        class FinishJob : Commands // TODO - Sebastian
+        class StartJob : Commands
+        class FinishJob : Commands
         class ProposeForInspection : Commands // TODO - Sven
-        class InspectAndReject : Commands // TODO - Cais
+        class InspectAndReject : Commands
         class InspectAndAccept : Commands // TODO - Ayman
         class Pay : Commands // TODO - Joel
 
@@ -115,6 +116,7 @@ class JobContract : Contract {
 // TODO - allow for lists of subjobs
 // TODO - allow for percentage completion and payment
 // TODO - map descriptions to BIM XML
+// TODO - include drawings as an attribute
 data class JobState(val description: String,
                     val status: JobStatus,
                     val developer: Party,
@@ -123,6 +125,7 @@ data class JobState(val description: String,
     override val participants = listOf(developer, contractor)
 }
 
+@CordaSerializable
 enum class JobStatus {
     UNSTARTED, STARTED, COMPLETED, REJECTED
 }
