@@ -22,7 +22,6 @@ class StartJobFlow ( val linearId : UniqueIdentifier ) : FlowLogic<SignedTransac
 
     @Suspendable
     override fun call(): SignedTransaction {
-
         val queryCriteria = QueryCriteria.LinearStateQueryCriteria(
                 linearId = listOf(linearId),
                 status = Vault.StateStatus.UNCONSUMED)
@@ -40,13 +39,27 @@ class StartJobFlow ( val linearId : UniqueIdentifier ) : FlowLogic<SignedTransac
                 .addOutputState(outputState, JobContract.ID)
                 .addCommand(command)
 
-
         transactionBuilder.verify(serviceHub)
         val partiallySignedTransaction = serviceHub.signInitialTransaction(transactionBuilder)
-        val sessions = (outputState.participants-ourIdentity).map {initiateFlow(it)}.toSet()
+
+        val sessions = (outputState.participants - ourIdentity).map {initiateFlow(it)}.toSet()
         val fullySignedTransaction = subFlow(CollectSignaturesFlow(partiallySignedTransaction, sessions))
+
         return subFlow(FinalityFlow(fullySignedTransaction))
 
     }
+}
 
+@InitiatedBy(StartJobFlow::class)
+class StartJobFlowResponder(val contractorSession: FlowSession) : FlowLogic<Unit>() {
+    @Suspendable
+    override fun call() {
+        class OurSignTransactionFlow : SignTransactionFlow(contractorSession) {
+            override fun checkTransaction(stx: SignedTransaction) {
+
+            }
+        }
+
+        subFlow(OurSignTransactionFlow())
+    }
 }

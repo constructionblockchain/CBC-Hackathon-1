@@ -55,5 +55,4 @@ class AgreeJobFlowResponder(val developerSession: FlowSession) : FlowLogic<Unit>
 
         subFlow(OurSignTransactionFlow())
     }
-
 }

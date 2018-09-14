@@ -37,6 +37,7 @@ class FinishJobFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransactio
                 listOf(ourIdentity.owningKey))
 
         val transactionBuilder = TransactionBuilder(inputState.notary)
+                .addInputState(inputStateAndRef)
                 .addOutputState(jobState, JobContract.ID)
                 .addCommand(finishJobCommand)
 

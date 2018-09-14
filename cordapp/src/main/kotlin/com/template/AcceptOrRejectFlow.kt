@@ -35,6 +35,7 @@ class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean) 
         val command = Command(commandType, listOf(ourIdentity.owningKey))
 
         val transactionBuilder = TransactionBuilder(inputState.notary)
+                .addInputState(inputStateAndRef)
                 .addOutputState(jobState, JobContract.ID)
                 .addCommand(command)
 
