@@ -41,8 +41,8 @@ class JobContract : Contract {
 
                 val jobInput = jobInputs.single()
                 val jobOutput = jobOutputs.single()
-                "the status should be set to started" using (jobOutput.status == JobStatus.STARTED)
-                "the previous status should not be STARTED" using (jobInput.status != JobStatus.STARTED)
+                "the input status should be UNSTARTED" using (jobInput.status == JobStatus.UNSTARTED)
+                "the output status should be STARTED" using (jobOutput.status == JobStatus.STARTED)
                 "only the job status should change" using (jobOutput == jobInput.copy(status = JobStatus.STARTED))
                 "the developer and contractor are required signers" using
                         (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
