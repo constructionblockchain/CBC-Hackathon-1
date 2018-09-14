@@ -85,7 +85,7 @@ class JobContract : Contract {
 
                 "the input status must be set as completed" using (jobInputs.single().status == JobStatus.COMPLETED)
                 "the output status should be set as accepted" using (jobOutputs.single().status == JobStatus.ACCEPTED)
-                "only the status must change" using (jobInput.copy(status = JobStatus.REJECTED) == jobOutput)
+                "only the status must change" using (jobInput.copy(status = JobStatus.ACCEPTED) == jobOutput)
 
                 "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
