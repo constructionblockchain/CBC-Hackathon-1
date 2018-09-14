@@ -17,7 +17,7 @@ import java.lang.IllegalStateException
 // *********
 @InitiatingFlow
 @StartableByRPC
-class FinishJobFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransaction>() {
+class PayFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
@@ -28,21 +28,36 @@ class FinishJobFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransactio
         val inputStateAndRef = results.states.single()
         val inputState = inputStateAndRef.state
 
-        if (inputState.data.contractor != ourIdentity) throw IllegalStateException("Contractor must start this flow.")
+        if (inputState.data.developer != ourIdentity) throw IllegalStateException("Developer must start this flow.")
 
         val jobState = inputState.data.copy(status = JobStatus.COMPLETED)
 
-        val finishJobCommand = Command(
+        val payJobCommand = Command(
                 JobContract.Commands.FinishJob(),
                 listOf(ourIdentity.owningKey))
 
         val transactionBuilder = TransactionBuilder(inputState.notary)
                 .addOutputState(jobState, JobContract.ID)
-                .addCommand(finishJobCommand)
+                .addCommand(payJobCommand)
 
         val signedTransaction =
                 serviceHub.signInitialTransaction(transactionBuilder)
 
         return subFlow(FinalityFlow(signedTransaction))
     }
+}
+
+@InitiatedBy(PayFlow::class)
+class PayFlowResponder(val developerSession: FlowSession) : FlowLogic<Unit>() {
+    @Suspendable
+    override fun call() {
+        class OurSignTransactionFlow : SignTransactionFlow(developerSession) {
+            override fun checkTransaction(stx: SignedTransaction) {
+
+            }
+        }
+
+        subFlow(OurSignTransactionFlow())
+    }
+
 }

@@ -28,7 +28,7 @@ class InspectionFlow(val linearId: UniqueIdentifier, val approved: Boolean) : Fl
         val inputStateAndRef = results.states.single()
         val inputState = inputStateAndRef.state
 
-        if (inputState.data.developer != ourIdentity) throw IllegalStateException("Contractor must start this flow.")
+        if (inputState.data.developer != ourIdentity) throw IllegalStateException("Developer must start this flow.")
 
         val jobState = if (approved) inputState.data.copy(status = JobStatus.ACCEPTED) else inputState.data.copy(status = JobStatus.REJECTED)
         val commandType = if (approved) JobContract.Commands.InspectAndAccept() else JobContract.Commands.InspectAndReject()
