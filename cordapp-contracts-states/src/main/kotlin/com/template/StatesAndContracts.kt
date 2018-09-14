@@ -63,10 +63,6 @@ class JobContract : Contract {
 
             }
 
-            is Commands.ProposeForInspection -> requireThat {
-
-            }
-
             is Commands.InspectAndReject -> requireThat {
                 // This insures we only have one input and one output
                 val jobOutput = jobOutputs.single()
@@ -98,9 +94,7 @@ class JobContract : Contract {
         class AgreeJob : Commands
         // TODO - allow contractor to reject job
         class StartJob : Commands
-
         class FinishJob : Commands
-        class ProposeForInspection : Commands // TODO - Sven
         class InspectAndReject : Commands
         class InspectAndAccept : Commands // TODO - Ayman
         class Pay : Commands // TODO - Joel
