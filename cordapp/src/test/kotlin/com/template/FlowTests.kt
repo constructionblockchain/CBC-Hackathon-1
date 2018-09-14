@@ -60,6 +60,15 @@ class FlowTests {
         return resultFuture.get()
     }
 
+    fun payJob(linearId: UniqueIdentifier): SignedTransaction {
+        val flow = PayFlow(linearId = linearId)
+        val resultFuture = a.startFlow(flow)
+        network.runNetwork()
+        return resultFuture.get()
+    }
+
+
+
     @Test
     fun `golden path agree job flow`() {
         agreeJob()
@@ -100,6 +109,23 @@ class FlowTests {
         startJob(linearId)
         finishJob(linearId)
         inspectJob(linearId, true)
+
+        // TODO: Add more flow tests elsewhere.
+        a.transaction {
+            val vaultStates = a.services.vaultService.queryBy<JobState>().states
+            assertEquals(1, vaultStates.size)
+        }
+    }
+
+    @Test
+    fun `golden path pay flow`() {
+        val signedTransaction = agreeJob()
+        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
+        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        startJob(linearId)
+        finishJob(linearId)
+        inspectJob(linearId, true)
+        payJob(linearId)
 
         // TODO: Add more flow tests elsewhere.
         a.transaction {
