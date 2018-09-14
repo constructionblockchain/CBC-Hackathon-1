@@ -4,6 +4,8 @@ import net.corda.core.contracts.*
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.transactions.LedgerTransaction
+import net.corda.finance.USD
+import java.util.*
 
 // *****************
 // * Contract Code *
@@ -26,6 +28,7 @@ class JobContract : Contract {
                 "no inputs should be consumed" using (jobInputs.isEmpty())
                 // TODO we might allow several jobs to be proposed at once later
                 "one output should be produced" using (jobOutputs.size == 1)
+                "amount should not be zero" using (jobOutputs.single().amount.quantity != 0.toLong())
 
                 val jobOutput = jobOutputs.single()
                 "the developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
@@ -37,7 +40,7 @@ class JobContract : Contract {
 
             is Commands.StartJob -> requireThat {
                 "one input should be consumed" using (jobInputs.size == 1)
-                "one output should bbe produced" using (jobOutputs.size == 1)
+                "one output should be produced" using (jobOutputs.size == 1)
 
                 val jobInput = jobInputs.single()
                 val jobOutput = jobOutputs.single()
@@ -91,7 +94,17 @@ class JobContract : Contract {
             }
 
             is Commands.Pay -> requireThat {
+                "one input should be consumed" using (jobInputs.size == 1)
+                "no output should be produced" using (jobOutputs.size == 0)
 
+                val jobOutput = jobOutputs.single()
+                val jobInput = jobInputs.single()
+
+                "the input status must be set as accepted" using (jobInputs.single().status == JobStatus.COMPLETED)
+                "the output status should be set as accepted" using (jobOutputs.single().status == JobStatus.ACCEPTED)
+                "only the status must change" using (jobInput.copy(status = JobStatus.ACCEPTED) == jobOutput)
+
+                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
 
             else -> throw IllegalArgumentException("Unrecognised command.")
@@ -123,6 +136,7 @@ data class JobState(val description: String,
                     val status: JobStatus,
                     val developer: Party,
                     val contractor: Party,
+                    val amount: Amount<Currency>,
                     override val linearId: UniqueIdentifier = UniqueIdentifier()
 ) : LinearState {
 
