@@ -82,6 +82,12 @@ class JobContract : Contract {
             }
 
             is Commands.InspectAndAccept -> requireThat {
+                "one input should be consumed" using (jobInputs.size == 1)
+                "one output should be produced" using (jobOutputs.size == 1)
+                val jobOutput = jobOutputs.first()
+                "input and output should be the same" using (jobInputs.first() == jobOutput)
+                "the developer and contractor are required signers" using
+                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
 
             }
 
