@@ -38,11 +38,11 @@ class JobContract : Contract {
 
             is Commands.StartJob -> requireThat {
                 "one input should be consumed" using (jobInputs.size == 1)
-                "one output should bbe produced" using (jobOutputs.size == 1)
+                "one output should be produced" using (jobOutputs.size == 1)
 
                 val jobInput = jobInputs.single()
                 val jobOutput = jobOutputs.single()
-                "the status should be set to started" using (jobOutput.status == JobStatus.STARTED)
+                "the status should be set to STARTED" using (jobOutput.status == JobStatus.STARTED)
                 "the previous status should not be STARTED" using (jobInput.status != JobStatus.STARTED)
                 "only the job status should change" using (jobOutput == jobInput.copy(status = JobStatus.STARTED))
                 "the developer and contractor are required signers" using
