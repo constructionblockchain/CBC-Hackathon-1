@@ -41,15 +41,15 @@ class JobContract : Contract {
 
                 val jobInput = jobInputs.single()
                 val jobOutput = jobOutputs.single()
-                "the status should be set to started" using (jobOutput.status == JobStatus.STARTED)
-                "the previous status should not be STARTED" using (jobInput.status != JobStatus.STARTED)
+                "the input status should be UNSTARTED" using (jobInput.status == JobStatus.UNSTARTED)
+                "the output status should be STARTED" using (jobOutput.status == JobStatus.STARTED)
                 "only the job status should change" using (jobOutput == jobInput.copy(status = JobStatus.STARTED))
                 "the developer and contractor are required signers" using
                         (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
             }
 
             is Commands.FinishJob -> requireThat {
-                "one input should be produced" using (jobInputs.size == 1)
+                "one input should be consumed" using (jobInputs.size == 1)
                 "one output should be produced" using (jobOutputs.size == 1)
 
                 val jobInput = jobInputs.single()
@@ -58,31 +58,36 @@ class JobContract : Contract {
                 "the input status must be set as started" using (jobInputs.single().status == JobStatus.STARTED)
                 "the output status should be set as finished" using (jobOutputs.single().status == JobStatus.COMPLETED)
                 "only the status must change" using (jobInput.copy(status = JobStatus.COMPLETED) == jobOutput)
-                "the update must be signed by the contractor of the " using (jobOutputs.single().contractor == jobInputs.single().contractor)
+
                 "the contractor should be signer" using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
-
-            }
-
-            is Commands.ProposeForInspection -> requireThat {
-
             }
 
             is Commands.InspectAndReject -> requireThat {
-                // This insures we only have one input and one output
+                "one input should be consumed" using (jobInputs.size == 1)
+                "one output should be produced" using (jobOutputs.size == 1)
+
                 val jobOutput = jobOutputs.single()
                 val jobInput = jobInputs.single()
 
-                "Only status should have changed" using (jobOutput.contractor == jobInput.contractor
-                        && jobOutput.developer == jobInput.developer
-                        && jobOutput.description == jobInput.description)
-                "Status should show rejected" using (jobOutput.status == JobStatus.REJECTED)
-                "Job must have been previously started" using (jobInput.status == JobStatus.STARTED)
+                "the input status must be set as completed" using (jobInputs.single().status == JobStatus.COMPLETED)
+                "the output status should be set as rejected" using (jobOutputs.single().status == JobStatus.REJECTED)
+                "only the status must change" using (jobInput.copy(status = JobStatus.REJECTED) == jobOutput)
 
                 "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
 
             is Commands.InspectAndAccept -> requireThat {
+                "one input should be consumed" using (jobInputs.size == 1)
+                "one output should be produced" using (jobOutputs.size == 1)
 
+                val jobOutput = jobOutputs.single()
+                val jobInput = jobInputs.single()
+
+                "the input status must be set as completed" using (jobInputs.single().status == JobStatus.COMPLETED)
+                "the output status should be set as accepted" using (jobOutputs.single().status == JobStatus.ACCEPTED)
+                "only the status must change" using (jobInput.copy(status = JobStatus.REJECTED) == jobOutput)
+
+                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
 
             is Commands.Pay -> requireThat {
@@ -98,11 +103,9 @@ class JobContract : Contract {
         class AgreeJob : Commands
         // TODO - allow contractor to reject job
         class StartJob : Commands
-
         class FinishJob : Commands
-        class ProposeForInspection : Commands // TODO - Sven
         class InspectAndReject : Commands
-        class InspectAndAccept : Commands // TODO - Ayman
+        class InspectAndAccept : Commands
         class Pay : Commands // TODO - Joel
 
         // TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
@@ -128,5 +131,5 @@ data class JobState(val description: String,
 
 @CordaSerializable
 enum class JobStatus {
-    UNSTARTED, STARTED, COMPLETED, REJECTED
+    UNSTARTED, STARTED, COMPLETED, ACCEPTED, REJECTED
 }
