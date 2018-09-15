@@ -130,6 +130,7 @@ class JobContract : Contract {
 // *********
 // TODO - allow for lists of subjobs
 // TODO - allow for percentage completion and payment
+// TODO - allow for retentions
 // TODO - map descriptions to BIM XML
 // TODO - include drawings as an attribute
 data class JobState(val description: String,
