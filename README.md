@@ -15,7 +15,7 @@ A CorDapp automating the following construction workflow:
 
 ## TODOs
 
-* Subjobs
+* Subjobs/splitting of milestones into tasks
 * Percentage completion and payment
 * Retentions of 5% per milestone that are paid once all milestones are complete
 * Map descriptions to BIM XML

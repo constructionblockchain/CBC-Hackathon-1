@@ -204,7 +204,10 @@ data class JobState(
 }
 
 @CordaSerializable
-data class Milestone(val description: String, val amount: Amount<Currency>, val status: MilestoneStatus = MilestoneStatus.UNSTARTED)
+data class Milestone(
+        val description: String,
+        val amount: Amount<Currency>,
+        val status: MilestoneStatus = MilestoneStatus.UNSTARTED)
 
 @CordaSerializable
 enum class MilestoneStatus {
