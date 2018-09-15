@@ -34,6 +34,8 @@ class JobContract : Contract {
                 "the developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
                 "the status should be set as unstarted" using (jobOutput.status == JobStatus.UNSTARTED)
 
+                // TODO - constraints around the amount
+
                 "the developer and contractor are required signer" using
                         (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
             }
