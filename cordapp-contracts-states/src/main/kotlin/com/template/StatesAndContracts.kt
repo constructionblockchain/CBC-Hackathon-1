@@ -4,7 +4,6 @@ import net.corda.core.contracts.*
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.transactions.LedgerTransaction
-import net.corda.finance.USD
 import java.util.*
 
 // *****************
@@ -13,7 +12,7 @@ import java.util.*
 class JobContract : Contract {
     // This is used to identify our contract when building a transaction
     companion object {
-        val ID = "com.template.JobContract"
+        const val ID = "com.template.JobContract"
     }
 
     // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
