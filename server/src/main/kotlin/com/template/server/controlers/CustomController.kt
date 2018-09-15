@@ -27,9 +27,6 @@ class CustomController(
 
     private val proxy = rpc.proxy
 
-    @GetMapping(value = "/customendpoint", produces = arrayOf("text/plain"))
-    private fun status() = "Modify this."
-
     @PostMapping(value = "/agreejob")
     private fun agreeJob(
             // You pass these lists in the POST body as follows: Description one., Description two., etc.
