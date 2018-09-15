@@ -17,7 +17,7 @@ import java.lang.IllegalStateException
 // *********
 @InitiatingFlow
 @StartableByRPC
-class FinishJobFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransaction>() {
+class FinishJobFlow(val linearId: UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
@@ -30,7 +30,10 @@ class FinishJobFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransactio
 
         if (inputState.data.contractor != ourIdentity) throw IllegalStateException("Contractor must start this flow.")
 
-        val jobState = inputState.data.copy(status = JobStatus.COMPLETED)
+        val updatedMilestones = inputState.data.milestones.toMutableList()
+        updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.COMPLETED)
+
+        val jobState = inputState.data.copy(milestones = updatedMilestones)
 
         val finishJobCommand = Command(
                 JobContract.Commands.FinishJob(),

@@ -19,96 +19,96 @@ class JobContract : Contract {
     // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
     // and output states does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
-        val jobInputs = tx.inputsOfType<JobState>()
-        val jobOutputs = tx.outputsOfType<JobState>()
-        val jobCommand = tx.commandsOfType<JobContract.Commands>().single()
-
-        when (jobCommand.value) {
-            is Commands.AgreeJob -> requireThat {
-                "no inputs should be consumed" using (jobInputs.isEmpty())
-                // TODO we might allow several jobs to be proposed at once later
-                "one output should be produced" using (jobOutputs.size == 1)
-                "amount should not be zero" using (jobOutputs.single().amount.quantity != 0.toLong())
-
-                val jobOutput = jobOutputs.single()
-                "the developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
-                "the status should be set as unstarted" using (jobOutput.status == JobStatus.UNSTARTED)
-
-                // TODO - constraints around the amount
-
-                "the developer and contractor are required signer" using
-                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
-            }
-
-            is Commands.StartJob -> requireThat {
-                "one input should be consumed" using (jobInputs.size == 1)
-                "one output should be produced" using (jobOutputs.size == 1)
-
-                val jobInput = jobInputs.single()
-                val jobOutput = jobOutputs.single()
-                "the input status should be UNSTARTED" using (jobInput.status == JobStatus.UNSTARTED)
-                "the output status should be STARTED" using (jobOutput.status == JobStatus.STARTED)
-                "only the job status should change" using (jobOutput == jobInput.copy(status = JobStatus.STARTED))
-                "the developer and contractor are required signers" using
-                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
-            }
-
-            is Commands.FinishJob -> requireThat {
-                "one input should be consumed" using (jobInputs.size == 1)
-                "one output should be produced" using (jobOutputs.size == 1)
-
-                val jobInput = jobInputs.single()
-                val jobOutput = jobOutputs.single()
-
-                "the input status must be set as started" using (jobInputs.single().status == JobStatus.STARTED)
-                "the output status should be set as finished" using (jobOutputs.single().status == JobStatus.COMPLETED)
-                "only the status must change" using (jobInput.copy(status = JobStatus.COMPLETED) == jobOutput)
-
-                "the contractor should be signer" using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
-            }
-
-            is Commands.InspectAndReject -> requireThat {
-                "one input should be consumed" using (jobInputs.size == 1)
-                "one output should be produced" using (jobOutputs.size == 1)
-
-                val jobOutput = jobOutputs.single()
-                val jobInput = jobInputs.single()
-
-                "the input status must be set as completed" using (jobInputs.single().status == JobStatus.COMPLETED)
-                "the output status should be set as rejected" using (jobOutputs.single().status == JobStatus.STARTED)
-                "only the status must change" using (jobInput.copy(status = JobStatus.STARTED) == jobOutput)
-
-                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
-            }
-
-            is Commands.InspectAndAccept -> requireThat {
-                "one input should be consumed" using (jobInputs.size == 1)
-                "one output should be produced" using (jobOutputs.size == 1)
-
-                val jobOutput = jobOutputs.single()
-                val jobInput = jobInputs.single()
-
-                "the input status must be set as completed" using (jobInputs.single().status == JobStatus.COMPLETED)
-                "the output status should be set as accepted" using (jobOutputs.single().status == JobStatus.ACCEPTED)
-                "only the status must change" using (jobInput.copy(status = JobStatus.ACCEPTED) == jobOutput)
-
-                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
-            }
-
-            is Commands.Pay -> requireThat {
-                "one input should be consumed" using (jobInputs.size == 1)
-                "no output should be produced" using (jobOutputs.isEmpty())
-
-                val jobInput = jobInputs.single()
-                "the input status must be set as completed" using (jobInputs.single().status == JobStatus.ACCEPTED)
-
-                "Developer should be a signer" using (jobCommand.signers.contains(jobInput.developer.owningKey))
-
-                // TODO - cash based rules
-            }
-
-            else -> throw IllegalArgumentException("Unrecognised command.")
-        }
+//        val jobInputs = tx.inputsOfType<JobState>()
+//        val jobOutputs = tx.outputsOfType<JobState>()
+//        val jobCommand = tx.commandsOfType<JobContract.Commands>().single()
+//
+//        when (jobCommand.value) {
+//            is Commands.AgreeJob -> requireThat {
+//                "no inputs should be consumed" using (jobInputs.isEmpty())
+//                // TODO we might allow several jobs to be proposed at once later
+//                "one output should be produced" using (jobOutputs.size == 1)
+//                "amount should not be zero" using (jobOutputs.single().amount.quantity != 0.toLong())
+//
+//                val jobOutput = jobOutputs.single()
+//                "the developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
+//                "the status should be set as unstarted" using (jobOutput.status == MilestoneStatus.UNSTARTED)
+//
+//                // TODO - constraints around the amount
+//
+//                "the developer and contractor are required signer" using
+//                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
+//            }
+//
+//            is Commands.StartJob -> requireThat {
+//                "one input should be consumed" using (jobInputs.size == 1)
+//                "one output should be produced" using (jobOutputs.size == 1)
+//
+//                val jobInput = jobInputs.single()
+//                val jobOutput = jobOutputs.single()
+//                "the input status should be UNSTARTED" using (jobInput.status == MilestoneStatus.UNSTARTED)
+//                "the output status should be STARTED" using (jobOutput.status == MilestoneStatus.STARTED)
+//                "only the job status should change" using (jobOutput == jobInput.copy(status = MilestoneStatus.STARTED))
+//                "the developer and contractor are required signers" using
+//                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
+//            }
+//
+//            is Commands.FinishJob -> requireThat {
+//                "one input should be consumed" using (jobInputs.size == 1)
+//                "one output should be produced" using (jobOutputs.size == 1)
+//
+//                val jobInput = jobInputs.single()
+//                val jobOutput = jobOutputs.single()
+//
+//                "the input status must be set as started" using (jobInputs.single().status == MilestoneStatus.STARTED)
+//                "the output status should be set as finished" using (jobOutputs.single().status == MilestoneStatus.COMPLETED)
+//                "only the status must change" using (jobInput.copy(status = MilestoneStatus.COMPLETED) == jobOutput)
+//
+//                "the contractor should be signer" using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
+//            }
+//
+//            is Commands.InspectAndReject -> requireThat {
+//                "one input should be consumed" using (jobInputs.size == 1)
+//                "one output should be produced" using (jobOutputs.size == 1)
+//
+//                val jobOutput = jobOutputs.single()
+//                val jobInput = jobInputs.single()
+//
+//                "the input status must be set as completed" using (jobInputs.single().status == MilestoneStatus.COMPLETED)
+//                "the output status should be set as rejected" using (jobOutputs.single().status == MilestoneStatus.STARTED)
+//                "only the status must change" using (jobInput.copy(status = MilestoneStatus.STARTED) == jobOutput)
+//
+//                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
+//            }
+//
+//            is Commands.InspectAndAccept -> requireThat {
+//                "one input should be consumed" using (jobInputs.size == 1)
+//                "one output should be produced" using (jobOutputs.size == 1)
+//
+//                val jobOutput = jobOutputs.single()
+//                val jobInput = jobInputs.single()
+//
+//                "the input status must be set as completed" using (jobInputs.single().status == MilestoneStatus.COMPLETED)
+//                "the output status should be set as accepted" using (jobOutputs.single().status == MilestoneStatus.ACCEPTED)
+//                "only the status must change" using (jobInput.copy(status = MilestoneStatus.ACCEPTED) == jobOutput)
+//
+//                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
+//            }
+//
+//            is Commands.Pay -> requireThat {
+//                "one input should be consumed" using (jobInputs.size == 1)
+//                "no output should be produced" using (jobOutputs.isEmpty())
+//
+//                val jobInput = jobInputs.single()
+//                "the input status must be set as completed" using (jobInputs.single().status == MilestoneStatus.ACCEPTED)
+//
+//                "Developer should be a signer" using (jobCommand.signers.contains(jobInput.developer.owningKey))
+//
+//                // TODO - cash based rules
+//            }
+//
+//            else -> throw IllegalArgumentException("Unrecognised command.")
+//        }
     }
 
     // Used to indicate the transaction's intent.
@@ -120,11 +120,13 @@ class JobContract : Contract {
         class InspectAndAccept : Commands
         class Pay : Commands
 
+        // TODO - mobilisation fee
         // TODO - allow contractor to reject job
         // TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
         // TODO - allow milestone to be added, but
             // 1. not after final milestone has been completed
             // 2. not at an earlier stage than the latest completed milestone
+        // TODO - allow unfinished milestones to be modified
     }
 }
 
@@ -146,7 +148,8 @@ data class JobState(
     override val participants = listOf(developer, contractor)
 }
 
-data class Milestone(val description: String, val status: MilestoneStatus, val amount: Amount<Currency>)
+@CordaSerializable
+data class Milestone(val description: String, val amount: Amount<Currency>, val status: MilestoneStatus = MilestoneStatus.UNSTARTED)
 
 @CordaSerializable
 enum class MilestoneStatus {

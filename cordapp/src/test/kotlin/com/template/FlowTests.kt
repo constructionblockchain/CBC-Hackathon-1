@@ -1,11 +1,10 @@
 package com.template
 
-import com.template.flows.StartJobFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.node.services.queryBy
 import net.corda.core.transactions.SignedTransaction
-import net.corda.core.utilities.ProgressTracker
+import net.corda.finance.DOLLARS
 import net.corda.finance.contracts.asset.Cash
 import net.corda.testing.internal.chooseIdentity
 import net.corda.testing.node.MockNetwork
@@ -20,10 +19,12 @@ class FlowTests {
     private val a = network.createNode()
     private val b = network.createNode()
 
-    private val description = "Fit some windows."
-    private val quantity = 100
-    private val currency = "USD"
-    private val amount = Amount(quantity.toLong() * 100, Currency.getInstance(currency))
+    private val milestoneNames = listOf("Fit some windows.", "Build some walls.", "Add a doorbell.")
+    private val milestoneAmounts = listOf(100.DOLLARS, 500.DOLLARS, 50.DOLLARS)
+
+    private val milestones = milestoneNames.zip(milestoneAmounts).map {
+        (name, amount) -> Milestone(name, amount)
+    }
 
     init {
         b.registerInitiatedFlow(AgreeJobFlowResponder::class.java)
@@ -36,31 +37,31 @@ class FlowTests {
     fun tearDown() = network.stopNodes()
 
     fun agreeJob(): SignedTransaction {
-        val flow = AgreeJobFlow(description, b.info.chooseIdentity(), quantity, currency, notaryToUse = network.defaultNotaryIdentity)
+        val flow = AgreeJobFlow(milestones, b.info.chooseIdentity(), notaryToUse = network.defaultNotaryIdentity)
 
         val resultFuture = a.startFlow(flow)
         network.runNetwork()
         return resultFuture.get()
     }
 
-    fun startJob(linearId: UniqueIdentifier): SignedTransaction {
-        val flow = StartJobFlow(linearId)
+    fun startJob(linearId: UniqueIdentifier, milestoneIndex: Int): SignedTransaction {
+        val flow = StartMilestoneFlow(linearId, milestoneIndex)
 
         val resultFuture = b.startFlow(flow)
         network.runNetwork()
         return resultFuture.get()
     }
 
-    fun finishJob(linearId: UniqueIdentifier): SignedTransaction {
-        val flow = FinishJobFlow(linearId)
+    fun finishJob(linearId: UniqueIdentifier, milestoneIndex: Int): SignedTransaction {
+        val flow = FinishJobFlow(linearId, milestoneIndex)
 
         val resultFuture = b.startFlow(flow)
         network.runNetwork()
         return resultFuture.get()
     }
 
-    fun inspectJob(linearId: UniqueIdentifier, isApproved: Boolean): SignedTransaction {
-        val flow = AcceptOrRejectFlow(linearId, isApproved)
+    fun inspectJob(linearId: UniqueIdentifier, isApproved: Boolean, milestoneIndex: Int): SignedTransaction {
+        val flow = AcceptOrRejectFlow(linearId, isApproved, milestoneIndex)
 
         val resultFuture = a.startFlow(flow)
         network.runNetwork()
@@ -68,14 +69,14 @@ class FlowTests {
     }
 
     fun issueCash() {
-        val flow = IssueCashFlow(quantity, currency, notaryToUse = network.defaultNotaryIdentity)
+        val flow = IssueCashFlow(650.DOLLARS, notaryToUse = network.defaultNotaryIdentity)
         val resultFuture = a.startFlow(flow)
         network.runNetwork()
         resultFuture.get()
     }
 
-    fun payJob(linearId: UniqueIdentifier): SignedTransaction {
-        val flow = PayFlow(linearId)
+    fun payJob(linearId: UniqueIdentifier, milestoneIndex: Int): SignedTransaction {
+        val flow = PayFlow(linearId, milestoneIndex)
         val resultFuture = a.startFlow(flow)
         network.runNetwork()
         return resultFuture.get()
@@ -91,11 +92,9 @@ class FlowTests {
                 assertEquals(1, jobStatesAndRefs.size)
 
                 val jobState = jobStatesAndRefs.single().state.data
-                assertEquals(description, jobState.description)
-                assertEquals(JobStatus.UNSTARTED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
-                assertEquals(amount, jobState.amount)
+                assertEquals(milestones, jobState.milestones)
             }
         }
     }
@@ -114,7 +113,7 @@ class FlowTests {
 
                 val jobState = jobStatesAndRefs.single().state.data
                 assertEquals(description, jobState.description)
-                assertEquals(JobStatus.STARTED, jobState.status)
+                assertEquals(MilestoneStatus.STARTED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
                 assertEquals(amount, jobState.amount)
@@ -137,7 +136,7 @@ class FlowTests {
 
                 val jobState = jobStatesAndRefs.single().state.data
                 assertEquals(description, jobState.description)
-                assertEquals(JobStatus.COMPLETED, jobState.status)
+                assertEquals(MilestoneStatus.COMPLETED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
                 assertEquals(amount, jobState.amount)
@@ -161,7 +160,7 @@ class FlowTests {
 
                 val jobState = jobStatesAndRefs.single().state.data
                 assertEquals(description, jobState.description)
-                assertEquals(JobStatus.STARTED, jobState.status)
+                assertEquals(MilestoneStatus.STARTED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
                 assertEquals(amount, jobState.amount)
@@ -185,7 +184,7 @@ class FlowTests {
 
                 val jobState = jobStatesAndRefs.single().state.data
                 assertEquals(description, jobState.description)
-                assertEquals(JobStatus.ACCEPTED, jobState.status)
+                assertEquals(MilestoneStatus.ACCEPTED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
                 assertEquals(amount, jobState.amount)

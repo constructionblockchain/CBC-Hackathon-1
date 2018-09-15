@@ -1,9 +1,6 @@
-package com.template.flows
+package com.template
 
 import co.paralleluniverse.fibers.Suspendable
-import com.template.JobContract
-import com.template.JobState
-import com.template.JobStatus
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
@@ -17,7 +14,7 @@ import java.lang.IllegalStateException
 
 @InitiatingFlow
 @StartableByRPC
-class StartJobFlow ( val linearId : UniqueIdentifier ) : FlowLogic<SignedTransaction>() {
+class StartMilestoneFlow (val linearId : UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<SignedTransaction>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
@@ -29,8 +26,13 @@ class StartJobFlow ( val linearId : UniqueIdentifier ) : FlowLogic<SignedTransac
         val inputStateAndRef = vaultPage.states.singleOrNull()
                 ?: throw FlowException("there is no Job with linear id $linearId")
         val inputState = inputStateAndRef.state.data
+
         if (inputState.contractor != ourIdentity) throw IllegalStateException("Contractor must start this flow.")
-        val outputState = inputState.copy(status = JobStatus.STARTED)
+
+        val updatedMilestones = inputState.milestones.toMutableList()
+        updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.STARTED)
+
+        val outputState = inputState.copy(milestones = updatedMilestones)
         val signers = inputState.participants.map { it.owningKey }
         val command = Command(JobContract.Commands.StartJob(), signers)
 
@@ -50,7 +52,7 @@ class StartJobFlow ( val linearId : UniqueIdentifier ) : FlowLogic<SignedTransac
     }
 }
 
-@InitiatedBy(StartJobFlow::class)
+@InitiatedBy(StartMilestoneFlow::class)
 class StartJobFlowResponder(val contractorSession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {

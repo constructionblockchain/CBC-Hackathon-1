@@ -17,7 +17,7 @@ import java.lang.IllegalStateException
 // *********
 @InitiatingFlow
 @StartableByRPC
-class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean) : FlowLogic<SignedTransaction>() {
+class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean, val milestoneIndex: Int) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
@@ -30,8 +30,20 @@ class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean) 
 
         if (inputState.data.developer != ourIdentity) throw IllegalStateException("Developer must start this flow.")
 
-        val jobState = if (approved) inputState.data.copy(status = JobStatus.ACCEPTED) else inputState.data.copy(status = JobStatus.STARTED)
-        val commandType = if (approved) JobContract.Commands.InspectAndAccept() else JobContract.Commands.InspectAndReject()
+        val jobState = if (approved) {
+            val updatedMilestones = inputState.data.milestones.toMutableList()
+            updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.ACCEPTED)
+            inputState.data.copy(milestones = updatedMilestones)
+        } else {
+            val updatedMilestones = inputState.data.milestones.toMutableList()
+            updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.STARTED)
+            inputState.data.copy(milestones = updatedMilestones)
+        }
+        val commandType = if (approved) {
+            JobContract.Commands.InspectAndAccept()
+        } else {
+            JobContract.Commands.InspectAndReject()
+        }
         val command = Command(commandType, listOf(ourIdentity.owningKey))
 
         val transactionBuilder = TransactionBuilder(inputState.notary)

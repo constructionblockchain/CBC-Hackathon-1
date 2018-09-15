@@ -16,19 +16,15 @@ import java.util.*
 // *********
 @InitiatingFlow
 @StartableByRPC
-class AgreeJobFlow(val description: String,
+class AgreeJobFlow(val milestones: List<Milestone>,
                    val contractor: Party,
-                   val quantity: Int,
-                   val currency: String,
                    val notaryToUse: Party) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
     override fun call(): SignedTransaction {
-        val amount = Amount(quantity.toLong() * 100, Currency.getInstance(currency))
-        val jobState = JobState(description, JobStatus.UNSTARTED,
-                ourIdentity, contractor, amount)
+        val jobState = JobState(ourIdentity, contractor, milestones)
 
         val agreeJobCommand = Command(
                 JobContract.Commands.AgreeJob(),

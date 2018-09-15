@@ -1,7 +1,6 @@
 package com.template
 
 import co.paralleluniverse.fibers.Suspendable
-import net.corda.confidential.IdentitySyncFlow
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
@@ -14,7 +13,7 @@ import net.corda.finance.contracts.asset.Cash
 
 @InitiatingFlow
 @StartableByRPC
-class PayFlow(private val linearId: UniqueIdentifier) : FlowLogic<SignedTransaction>() {
+class PayFlow(private val linearId: UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
@@ -26,13 +25,15 @@ class PayFlow(private val linearId: UniqueIdentifier) : FlowLogic<SignedTransact
         val inputStateAndRef = results.states.single()
         val inputState = inputStateAndRef.state
 
-        // Stage 3. This flow can only be initiated by the current recipient.
-
         check(inputState.data.developer == ourIdentity) {
             throw FlowException("Payment flow must be initiated by the developer.")
         }
 
-        // Stage 5. Create a settle command.
+        val milestoneToUpdate = inputState.data.milestones[milestoneIndex]
+        val updatedMilestones = inputState.data.milestones.toMutableList()
+        updatedMilestones[milestoneIndex] = milestoneToUpdate.copy(status = MilestoneStatus.PAID)
+
+        val jobState = inputState.data.copy(milestones = updatedMilestones)
 
         val payCommand = Command(
                 JobContract.Commands.Pay(),
@@ -41,10 +42,11 @@ class PayFlow(private val linearId: UniqueIdentifier) : FlowLogic<SignedTransact
 
         val transactionBuilder = TransactionBuilder(inputState.notary)
                 .addInputState(inputStateAndRef)
+                .addOutputState(jobState, JobContract.ID)
                 .addCommand(payCommand)
 
         val contractor = inputState.data.contractor
-        val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, transactionBuilder, inputState.data.amount, contractor)
+        val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, transactionBuilder, milestoneToUpdate.amount, contractor)
 
         transactionBuilder.verify(serviceHub)
         val signedTransaction = serviceHub.signInitialTransaction(transactionBuilder, cashSigningKeys + ourIdentity.owningKey)
