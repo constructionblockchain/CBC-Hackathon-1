@@ -147,9 +147,9 @@ class FlowTests {
         val signedTransaction = agreeJob()
         val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
         val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
-        startJob(linearId)
-        finishJob(linearId)
-        inspectJob(linearId, false)
+        startJob(linearId, 0)
+        finishJob(linearId, 0)
+        inspectJob(linearId, false, 0)
 
         listOf(a, b).forEach { node ->
             node.transaction {
@@ -157,11 +157,12 @@ class FlowTests {
                 assertEquals(1, jobStatesAndRefs.size)
 
                 val jobState = jobStatesAndRefs.single().state.data
-                assertEquals(description, jobState.description)
-                assertEquals(MilestoneStatus.STARTED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
-                assertEquals(amount, jobState.amount)
+                assertEquals(MilestoneStatus.STARTED, jobState.milestones[0].status)
+                assertEquals(milestones[0].description, jobState.milestones[0].description)
+                assertEquals(milestones[0].amount, jobState.milestones[0].amount)
+                assertEquals(milestones.subList(1, milestones.size), jobState.milestones.subList(1, milestones.size))
             }
         }
     }
