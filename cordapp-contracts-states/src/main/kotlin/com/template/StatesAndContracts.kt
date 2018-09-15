@@ -97,16 +97,14 @@ class JobContract : Contract {
 
             is Commands.Pay -> requireThat {
                 "one input should be consumed" using (jobInputs.size == 1)
-                "no output should be produced" using (jobOutputs.size == 0)
+                "no output should be produced" using (jobOutputs.isEmpty())
 
-                val jobOutput = jobOutputs.single()
                 val jobInput = jobInputs.single()
+                "the input status must be set as completed" using (jobInputs.single().status == JobStatus.ACCEPTED)
 
-                "the input status must be set as accepted" using (jobInputs.single().status == JobStatus.COMPLETED)
-                "the output status should be set as accepted" using (jobOutputs.single().status == JobStatus.ACCEPTED)
-                "only the status must change" using (jobInput.copy(status = JobStatus.ACCEPTED) == jobOutput)
+                "Developer should be a signer" using (jobCommand.signers.contains(jobInput.developer.owningKey))
 
-                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
+                // TODO - cash based rules
             }
 
             else -> throw IllegalArgumentException("Unrecognised command.")

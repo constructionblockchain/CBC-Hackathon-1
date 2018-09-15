@@ -15,7 +15,7 @@ import java.util.*
 import kotlin.test.assertEquals
 
 class FlowTests {
-    private val network = MockNetwork(listOf("com.template"))
+    private val network = MockNetwork(listOf("com.template", "net.corda.finance.contracts.asset"))
     private val a = network.createNode()
     private val b = network.createNode()
 
@@ -66,14 +66,19 @@ class FlowTests {
         return resultFuture.get()
     }
 
+    fun issueCash() {
+        val flow = IssueCashFlow(quantity, currency, notaryToUse = network.defaultNotaryIdentity)
+        val resultFuture = a.startFlow(flow)
+        network.runNetwork()
+        resultFuture.get()
+    }
+
     fun payJob(linearId: UniqueIdentifier): SignedTransaction {
         val flow = PayFlow(linearId)
         val resultFuture = a.startFlow(flow)
         network.runNetwork()
         return resultFuture.get()
     }
-
-
 
     @Test
     fun `golden path agree job flow`() {
@@ -195,12 +200,9 @@ class FlowTests {
         startJob(linearId)
         finishJob(linearId)
         inspectJob(linearId, true)
+        issueCash()
         payJob(linearId)
 
-        // TODO: Add more flow tests elsewhere.
-        a.transaction {
-            val vaultStates = a.services.vaultService.queryBy<JobState>().states
-            assertEquals(1, vaultStates.size)
-        }
+        // TODO: Add vault tests.
     }
 }

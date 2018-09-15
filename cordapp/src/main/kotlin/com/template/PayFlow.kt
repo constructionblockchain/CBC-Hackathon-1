@@ -36,7 +36,7 @@ class PayFlow(private val linearId: UniqueIdentifier) : FlowLogic<SignedTransact
 
         val payCommand = Command(
                 JobContract.Commands.Pay(),
-                inputState.data.participants.map { it.owningKey }
+                ourIdentity.owningKey
         )
 
         val transactionBuilder = TransactionBuilder(inputState.notary)
@@ -47,30 +47,8 @@ class PayFlow(private val linearId: UniqueIdentifier) : FlowLogic<SignedTransact
         val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, transactionBuilder, inputState.data.amount, contractor)
 
         transactionBuilder.verify(serviceHub)
-        val ptx = serviceHub.signInitialTransaction(transactionBuilder, cashSigningKeys + ourIdentity.owningKey)
+        val signedTransaction = serviceHub.signInitialTransaction(transactionBuilder, cashSigningKeys + ourIdentity.owningKey)
 
-        val session = initiateFlow(ourIdentity)
-        subFlow(IdentitySyncFlow.Send(session, ptx.tx))
-        val stx = subFlow(CollectSignaturesFlow(
-                ptx,
-                setOf(session),
-                cashSigningKeys)
-        )
-
-        return subFlow(FinalityFlow(stx))
-    }
-}
-
-@InitiatedBy(PayFlow::class)
-class PayFlowResponder(private val otherFlow: FlowSession) : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        class OurSignTransactionFlow : SignTransactionFlow(otherFlow) {
-            override fun checkTransaction(stx: SignedTransaction) {
-
-            }
-        }
-
-        subFlow(OurSignTransactionFlow())
+        return subFlow(FinalityFlow(signedTransaction))
     }
 }
