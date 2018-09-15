@@ -16,7 +16,7 @@ import java.util.*
  * Define CorDapp-specific endpoints in a controller such as this.
  */
 @RestController
-@RequestMapping("/custom") // The paths for GET and POST requests are relative to this base path.
+@RequestMapping("/flows") // The paths for GET and POST requests are relative to this base path.
 class CustomController(
         private val rpc: NodeRPCConnection
 ) {
@@ -32,26 +32,28 @@ class CustomController(
 
     @PostMapping(value = "/agreejob")
     private fun agreeJob(
-            @RequestParam("milestone-description") milestoneDescription: String,
-            @RequestParam("milestone-amount") milestoneAmount: Long,
+            // You pass these lists in the POST body as follows: Description one., Description two., etc.
+            // No need for square brackets, enclosing quotes, etc.
+            @RequestParam("milestone-descriptions") milestoneDescriptions: List<String>,
+            @RequestParam("milestone-amounts") milestoneAmounts: List<String>,
             @RequestParam("milestone-currency") milestoneCurrency: String,
             @RequestParam("contractor") contractorName: String,
             @RequestParam("notary") notaryName: String
     ): ResponseEntity<*> {
+        val descriptionsAndAmounts = milestoneDescriptions.zip(milestoneAmounts)
 
-        val milestone = Milestone(
-                description = milestoneDescription,
-                amount = Amount(milestoneAmount, Currency.getInstance(milestoneCurrency)))
+        val milestones = descriptionsAndAmounts.map { (description, amountString) ->
+            val amount = Amount(amountString.toLong(), Currency.getInstance(milestoneCurrency))
+            Milestone(description, amount)
+        }
 
         val contractor = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(contractorName))
                 ?: return ResponseEntity<Any>("Contractor $contractorName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
         val notary = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(notaryName))
                 ?: return ResponseEntity<Any>("Notary $notaryName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
 
-        proxy.startFlowDynamic(AgreeJobFlow::class.java, listOf(milestone), contractor, notary).returnValue.get()
+        proxy.startFlowDynamic(AgreeJobFlow::class.java, milestones, contractor, notary).returnValue.get()
 
         return ResponseEntity<Any>("New job created.", HttpStatus.OK)
     }
-
-
 }
