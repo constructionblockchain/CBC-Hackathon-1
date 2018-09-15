@@ -7,20 +7,6 @@ import net.corda.core.transactions.LedgerTransaction
 import net.corda.finance.USD
 import java.util.*
 
-// TODO - subjobs
-// TODO - percentage completion and payment
-// TODO - retentions of 5% per milestone that are paid once all milestones are complete
-// TODO - map descriptions to BIM XML
-// TODO - architectural drawings as a property
-// TODO - milestone deadlines
-// TODO - mobilisation fee
-// TODO - allow contractor to reject job
-// TODO - include other legal documents such as tender etc when proposing a job
-// TODO - allow milestone to be added, but
-//      TODO - 1. not after final milestone has been completed
-//      TODO - 2. not at an earlier stage than the latest completed milestone
-// TODO - allow unfinished milestones to be modified
-
 // *****************
 // * Contract Code *
 // *****************
