@@ -81,117 +81,117 @@ class FlowTests {
         return resultFuture.get()
     }
 
-//    @Test
-//    fun `golden path agree job flow`() {
-//        agreeJob()
-//
-//        listOf(a, b).forEach { node ->
-//            node.transaction {
-//                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
-//                assertEquals(1, jobStatesAndRefs.size)
-//
-//                val jobState = jobStatesAndRefs.single().state.data
-//                assertEquals(description, jobState.description)
-//                assertEquals(JobStatus.UNSTARTED, jobState.status)
-//                assertEquals(a.info.chooseIdentity(), jobState.developer)
-//                assertEquals(b.info.chooseIdentity(), jobState.contractor)
-//                assertEquals(amount, jobState.amount)
-//            }
-//        }
-//    }
-//
-//    @Test
-//    fun `golden path start job flow`() {
-//        val signedTransaction = agreeJob()
-//        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-//        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
-//        startJob(linearId)
-//
-//        listOf(a, b).forEach { node ->
-//            node.transaction {
-//                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
-//                assertEquals(1, jobStatesAndRefs.size)
-//
-//                val jobState = jobStatesAndRefs.single().state.data
-//                assertEquals(description, jobState.description)
-//                assertEquals(JobStatus.STARTED, jobState.status)
-//                assertEquals(a.info.chooseIdentity(), jobState.developer)
-//                assertEquals(b.info.chooseIdentity(), jobState.contractor)
-//                assertEquals(amount, jobState.amount)
-//            }
-//        }
-//    }
-//
-//    @Test
-//    fun `golden path finish job flow`() {
-//        val signedTransaction = agreeJob()
-//        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-//        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
-//        startJob(linearId)
-//        finishJob(linearId)
-//
-//        listOf(a, b).forEach { node ->
-//            node.transaction {
-//                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
-//                assertEquals(1, jobStatesAndRefs.size)
-//
-//                val jobState = jobStatesAndRefs.single().state.data
-//                assertEquals(description, jobState.description)
-//                assertEquals(JobStatus.COMPLETED, jobState.status)
-//                assertEquals(a.info.chooseIdentity(), jobState.developer)
-//                assertEquals(b.info.chooseIdentity(), jobState.contractor)
-//                assertEquals(amount, jobState.amount)
-//            }
-//        }
-//    }
-//
-//    @Test
-//    fun `golden path reject job flow`() {
-//        val signedTransaction = agreeJob()
-//        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-//        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
-//        startJob(linearId)
-//        finishJob(linearId)
-//        inspectJob(linearId, false)
-//
-//        listOf(a, b).forEach { node ->
-//            node.transaction {
-//                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
-//                assertEquals(1, jobStatesAndRefs.size)
-//
-//                val jobState = jobStatesAndRefs.single().state.data
-//                assertEquals(description, jobState.description)
-//                assertEquals(JobStatus.REJECTED, jobState.status)
-//                assertEquals(a.info.chooseIdentity(), jobState.developer)
-//                assertEquals(b.info.chooseIdentity(), jobState.contractor)
-//                assertEquals(amount, jobState.amount)
-//            }
-//        }
-//    }
-//
-//    @Test
-//    fun `golden path accept job flow`() {
-//        val signedTransaction = agreeJob()
-//        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-//        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
-//        startJob(linearId)
-//        finishJob(linearId)
-//        inspectJob(linearId, true)
-//
-//        listOf(a, b).forEach { node ->
-//            node.transaction {
-//                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
-//                assertEquals(1, jobStatesAndRefs.size)
-//
-//                val jobState = jobStatesAndRefs.single().state.data
-//                assertEquals(description, jobState.description)
-//                assertEquals(JobStatus.ACCEPTED, jobState.status)
-//                assertEquals(a.info.chooseIdentity(), jobState.developer)
-//                assertEquals(b.info.chooseIdentity(), jobState.contractor)
-//                assertEquals(amount, jobState.amount)
-//            }
-//        }
-//    }
+    @Test
+    fun `golden path agree job flow`() {
+        agreeJob()
+
+        listOf(a, b).forEach { node ->
+            node.transaction {
+                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
+                assertEquals(1, jobStatesAndRefs.size)
+
+                val jobState = jobStatesAndRefs.single().state.data
+                assertEquals(description, jobState.description)
+                assertEquals(JobStatus.UNSTARTED, jobState.status)
+                assertEquals(a.info.chooseIdentity(), jobState.developer)
+                assertEquals(b.info.chooseIdentity(), jobState.contractor)
+                assertEquals(amount, jobState.amount)
+            }
+        }
+    }
+
+    @Test
+    fun `golden path start job flow`() {
+        val signedTransaction = agreeJob()
+        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
+        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        startJob(linearId)
+
+        listOf(a, b).forEach { node ->
+            node.transaction {
+                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
+                assertEquals(1, jobStatesAndRefs.size)
+
+                val jobState = jobStatesAndRefs.single().state.data
+                assertEquals(description, jobState.description)
+                assertEquals(JobStatus.STARTED, jobState.status)
+                assertEquals(a.info.chooseIdentity(), jobState.developer)
+                assertEquals(b.info.chooseIdentity(), jobState.contractor)
+                assertEquals(amount, jobState.amount)
+            }
+        }
+    }
+
+    @Test
+    fun `golden path finish job flow`() {
+        val signedTransaction = agreeJob()
+        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
+        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        startJob(linearId)
+        finishJob(linearId)
+
+        listOf(a, b).forEach { node ->
+            node.transaction {
+                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
+                assertEquals(1, jobStatesAndRefs.size)
+
+                val jobState = jobStatesAndRefs.single().state.data
+                assertEquals(description, jobState.description)
+                assertEquals(JobStatus.COMPLETED, jobState.status)
+                assertEquals(a.info.chooseIdentity(), jobState.developer)
+                assertEquals(b.info.chooseIdentity(), jobState.contractor)
+                assertEquals(amount, jobState.amount)
+            }
+        }
+    }
+
+    @Test
+    fun `golden path reject job flow`() {
+        val signedTransaction = agreeJob()
+        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
+        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        startJob(linearId)
+        finishJob(linearId)
+        inspectJob(linearId, false)
+
+        listOf(a, b).forEach { node ->
+            node.transaction {
+                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
+                assertEquals(1, jobStatesAndRefs.size)
+
+                val jobState = jobStatesAndRefs.single().state.data
+                assertEquals(description, jobState.description)
+                assertEquals(JobStatus.STARTED, jobState.status)
+                assertEquals(a.info.chooseIdentity(), jobState.developer)
+                assertEquals(b.info.chooseIdentity(), jobState.contractor)
+                assertEquals(amount, jobState.amount)
+            }
+        }
+    }
+
+    @Test
+    fun `golden path accept job flow`() {
+        val signedTransaction = agreeJob()
+        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
+        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        startJob(linearId)
+        finishJob(linearId)
+        inspectJob(linearId, true)
+
+        listOf(a, b).forEach { node ->
+            node.transaction {
+                val jobStatesAndRefs = node.services.vaultService.queryBy<JobState>().states
+                assertEquals(1, jobStatesAndRefs.size)
+
+                val jobState = jobStatesAndRefs.single().state.data
+                assertEquals(description, jobState.description)
+                assertEquals(JobStatus.ACCEPTED, jobState.status)
+                assertEquals(a.info.chooseIdentity(), jobState.developer)
+                assertEquals(b.info.chooseIdentity(), jobState.contractor)
+                assertEquals(amount, jobState.amount)
+            }
+        }
+    }
 
     @Test
     fun `golden path pay flow`() {

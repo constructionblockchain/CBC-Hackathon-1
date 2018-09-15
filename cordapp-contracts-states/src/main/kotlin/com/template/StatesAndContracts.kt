@@ -75,8 +75,8 @@ class JobContract : Contract {
                 val jobInput = jobInputs.single()
 
                 "the input status must be set as completed" using (jobInputs.single().status == JobStatus.COMPLETED)
-                "the output status should be set as rejected" using (jobOutputs.single().status == JobStatus.REJECTED)
-                "only the status must change" using (jobInput.copy(status = JobStatus.REJECTED) == jobOutput)
+                "the output status should be set as rejected" using (jobOutputs.single().status == JobStatus.STARTED)
+                "only the status must change" using (jobInput.copy(status = JobStatus.STARTED) == jobOutput)
 
                 "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
@@ -114,37 +114,41 @@ class JobContract : Contract {
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {
         class AgreeJob : Commands
-        // TODO - allow contractor to reject job
         class StartJob : Commands
         class FinishJob : Commands
         class InspectAndReject : Commands
         class InspectAndAccept : Commands
-        class Pay : Commands // TODO - Joel
+        class Pay : Commands
 
+        // TODO - allow contractor to reject job
         // TODO - in flow think about consuming other legal documents such as tender etc when proposing a job
+        // TODO - allow milestone to be added, but
+            // 1. not after final milestone has been completed
+            // 2. not at an earlier stage than the latest completed milestone
     }
 }
 
 // *********
 // * State *
 // *********
-// TODO - allow for lists of subjobs
-// TODO - allow for percentage completion and payment
-// TODO - allow for retentions
+// TODO - subjobs
+// TODO - percentage completion and payment
+// TODO - retentions of 5% per milestone that are paid once all milestones are complete
 // TODO - map descriptions to BIM XML
-// TODO - include drawings as an attribute
-data class JobState(val description: String,
-                    val status: JobStatus,
-                    val developer: Party,
-                    val contractor: Party,
-                    val amount: Amount<Currency>,
-                    override val linearId: UniqueIdentifier = UniqueIdentifier()
-) : LinearState {
+// TODO - architectural drawings as a property
+// TODO - milestone deadlines
+data class JobState(
+        val developer: Party,
+        val contractor: Party,
+        val milestones: List<Milestone>,
+        override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 
     override val participants = listOf(developer, contractor)
 }
 
+data class Milestone(val description: String, val status: MilestoneStatus, val amount: Amount<Currency>)
+
 @CordaSerializable
-enum class JobStatus {
-    UNSTARTED, STARTED, COMPLETED, ACCEPTED, REJECTED
+enum class MilestoneStatus {
+    UNSTARTED, STARTED, COMPLETED, ACCEPTED, PAID
 }

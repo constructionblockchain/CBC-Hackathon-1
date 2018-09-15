@@ -30,7 +30,7 @@ class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean) 
 
         if (inputState.data.developer != ourIdentity) throw IllegalStateException("Developer must start this flow.")
 
-        val jobState = if (approved) inputState.data.copy(status = JobStatus.ACCEPTED) else inputState.data.copy(status = JobStatus.REJECTED)
+        val jobState = if (approved) inputState.data.copy(status = JobStatus.ACCEPTED) else inputState.data.copy(status = JobStatus.STARTED)
         val commandType = if (approved) JobContract.Commands.InspectAndAccept() else JobContract.Commands.InspectAndReject()
         val command = Command(commandType, listOf(ourIdentity.owningKey))
 
