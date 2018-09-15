@@ -4,6 +4,7 @@ import com.template.JobContract
 import com.template.JobState
 import com.template.JobStatus
 import net.corda.core.identity.CordaX500Name
+import net.corda.finance.DOLLARS
 import net.corda.testing.core.TestIdentity
 import net.corda.testing.node.MockServices
 import net.corda.testing.node.ledger
@@ -16,10 +17,11 @@ class StartJobCommandTests {
     private val thirdParty = TestIdentity(CordaX500Name("John Roe", "Town", "GB"))
     private val participants = listOf(developer.publicKey, contractor.publicKey)
     private val unstartedJobState = JobState(
-        description = "Job description",
-        status = JobStatus.UNSTARTED,
-        developer = developer.party,
-        contractor = contractor.party
+            description = "Job description",
+            status = JobStatus.UNSTARTED,
+            developer = developer.party,
+            contractor = contractor.party,
+            amount = 100.DOLLARS
     )
 
     private val startedJobState = unstartedJobState.copy(status = JobStatus.STARTED)
@@ -125,4 +127,6 @@ class StartJobCommandTests {
             }
         }
     }
+
+    // TODO: Tests around amount.
 }

@@ -1,12 +1,15 @@
 package com.template
 
 import co.paralleluniverse.fibers.Suspendable
+import net.corda.core.contracts.Amount
 import net.corda.core.contracts.Command
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
+import net.corda.finance.DOLLARS
+import java.util.*
 
 // *********
 // * Flows *
@@ -15,14 +18,17 @@ import net.corda.core.utilities.ProgressTracker
 @StartableByRPC
 class AgreeJobFlow(val description: String,
                    val contractor: Party,
+                   val quantity: Int,
+                   val currency: String,
                    val notaryToUse: Party) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
     override fun call(): SignedTransaction {
+        val amount = Amount(quantity.toLong() * 100, Currency.getInstance(currency))
         val jobState = JobState(description, JobStatus.UNSTARTED,
-                ourIdentity, contractor)
+                ourIdentity, contractor, amount)
 
         val agreeJobCommand = Command(
                 JobContract.Commands.AgreeJob(),
