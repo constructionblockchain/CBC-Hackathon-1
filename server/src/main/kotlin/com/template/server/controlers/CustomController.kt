@@ -6,17 +6,10 @@ import com.template.MilestoneStatus
 import com.template.server.NodeRPCConnection
 import net.corda.core.contracts.Amount
 import net.corda.core.identity.CordaX500Name
-import net.corda.core.messaging.startFlow
-import net.corda.core.messaging.startTrackedFlow
-import org.json.simple.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.util.*
 
 /**
@@ -43,22 +36,22 @@ class CustomController(
         @RequestParam("milestone-amount") milestoneAmount: Long,
         @RequestParam("milestone-currency") milestoneCurrency: String,
         @RequestParam("milestone-status", required = false) milestoneStatus: String,  // TODO: Remove this
-        @RequestParam("contractor") contractor: String,
-        @RequestParam("notary") notary: String
+        @RequestParam("contractor") contractorName: String,
+        @RequestParam("notary") notaryName: String
         ): ResponseEntity<*> {
 
         val milestone = Milestone(
             description = milestoneDescription,
-            amount = Amount(milestoneAmount, Currency.getInstance(milestoneCurrency)),
-            status = MilestoneStatus.valueOf(milestoneStatus))
+            amount = Amount(milestoneAmount, Currency.getInstance(milestoneCurrency)))
 
-        val contractor = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(contractor))!!
-        val notary = proxy.notaryPartyFromX500Name(CordaX500Name.parse(notary))!!
-        val milestoneList = mutableListOf(milestone)
+        val contractor = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(contractorName)) ?:
+                return ResponseEntity<Any>("Contractor $contractorName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
+        val notary = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(notaryName))  ?:
+        return ResponseEntity<Any>("Notary $notaryName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
 
         val result = proxy.startFlowDynamic(
             AgreeJobFlow::class.java,
-            milestoneList,
+            listOf(milestone),
             contractor,
             notary).returnValue.get()
 

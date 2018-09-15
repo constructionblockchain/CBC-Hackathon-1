@@ -30,3 +30,4 @@ A CorDapp automating the following construction workflow:
 * Allow unfinished milestones to be modified
 * Provide total amount for project, and check milestones values don't exceed this
 * Provide status for overall job so job can be started separately of milestones
+* Capture individual, not just node, who started/reviewed/etc. milestone
