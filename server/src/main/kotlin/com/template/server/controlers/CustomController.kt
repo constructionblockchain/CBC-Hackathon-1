@@ -56,4 +56,39 @@ class CustomController(
 
         return ResponseEntity<Any>("New job created with ID ${linearId.id}.", HttpStatus.OK)
     }
+
+    @PostMapping(value = "/startmilestone")
+    private fun startmilestone(
+
+    ): ResponseEntity<*> {
+        return ResponseEntity<Any>("", HttpStatus.OK)
+    }
+
+    @PostMapping(value = "/finishmilestone")
+    private fun finishmilestone(
+
+    ): ResponseEntity<*> {
+        return ResponseEntity<Any>("", HttpStatus.OK)
+    }
+
+    @PostMapping(value = "/acceptmilestone")
+    private fun acceptmilestone(
+
+    ): ResponseEntity<*> {
+        return ResponseEntity<Any>("", HttpStatus.OK)
+    }
+
+    @PostMapping(value = "/rejectmilestone")
+    private fun rejectmilestone(
+
+    ): ResponseEntity<*> {
+        return ResponseEntity<Any>("", HttpStatus.OK)
+    }
+
+    @PostMapping(value = "/paymilestone")
+    private fun paymilestone(
+
+    ): ResponseEntity<*> {
+        return ResponseEntity<Any>("", HttpStatus.OK)
+    }
 }
