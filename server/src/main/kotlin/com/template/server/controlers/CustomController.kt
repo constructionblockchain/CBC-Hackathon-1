@@ -32,30 +32,25 @@ class CustomController(
 
     @PostMapping(value = "/agreejob")
     private fun agreeJob(
-        @RequestParam("milestone-description") milestoneDescription: String,
-        @RequestParam("milestone-amount") milestoneAmount: Long,
-        @RequestParam("milestone-currency") milestoneCurrency: String,
-        @RequestParam("milestone-status", required = false) milestoneStatus: String,  // TODO: Remove this
-        @RequestParam("contractor") contractorName: String,
-        @RequestParam("notary") notaryName: String
-        ): ResponseEntity<*> {
+            @RequestParam("milestone-description") milestoneDescription: String,
+            @RequestParam("milestone-amount") milestoneAmount: Long,
+            @RequestParam("milestone-currency") milestoneCurrency: String,
+            @RequestParam("contractor") contractorName: String,
+            @RequestParam("notary") notaryName: String
+    ): ResponseEntity<*> {
 
         val milestone = Milestone(
-            description = milestoneDescription,
-            amount = Amount(milestoneAmount, Currency.getInstance(milestoneCurrency)))
+                description = milestoneDescription,
+                amount = Amount(milestoneAmount, Currency.getInstance(milestoneCurrency)))
 
-        val contractor = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(contractorName)) ?:
-                return ResponseEntity<Any>("Contractor $contractorName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
-        val notary = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(notaryName))  ?:
-        return ResponseEntity<Any>("Notary $notaryName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
+        val contractor = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(contractorName))
+                ?: return ResponseEntity<Any>("Contractor $contractorName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
+        val notary = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(notaryName))
+                ?: return ResponseEntity<Any>("Notary $notaryName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
 
-        val result = proxy.startFlowDynamic(
-            AgreeJobFlow::class.java,
-            listOf(milestone),
-            contractor,
-            notary).returnValue.get()
+        proxy.startFlowDynamic(AgreeJobFlow::class.java, listOf(milestone), contractor, notary).returnValue.get()
 
-        return ResponseEntity<Any>(result.tx.outputs.single().data, HttpStatus.OK)
+        return ResponseEntity<Any>("New job created.", HttpStatus.OK)
     }
 
 
