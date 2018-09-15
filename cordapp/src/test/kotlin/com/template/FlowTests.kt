@@ -26,6 +26,8 @@ class FlowTests {
         (name, amount) -> Milestone(name, amount)
     }
 
+    private val milestoneIndex = 0
+
     init {
         b.registerInitiatedFlow(AgreeJobFlowResponder::class.java)
     }
@@ -104,7 +106,7 @@ class FlowTests {
         val signedTransaction = agreeJob()
         val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
         val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
-        startJob(linearId)
+        startJob(linearId, milestoneIndex)
 
         listOf(a, b).forEach { node ->
             node.transaction {
@@ -112,11 +114,17 @@ class FlowTests {
                 assertEquals(1, jobStatesAndRefs.size)
 
                 val jobState = jobStatesAndRefs.single().state.data
-                assertEquals(description, jobState.description)
-                assertEquals(MilestoneStatus.STARTED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
-                assertEquals(amount, jobState.amount)
+
+
+                val milestonesState = jobState.milestones
+                val milestoneStarted = milestonesState[milestoneIndex]
+                assertEquals(milestoneNames, milestonesState.map { it.description })
+                assertEquals(milestoneAmounts, milestonesState.map { it.amount })
+                assertEquals(MilestoneStatus.STARTED, milestoneStarted.status)
+                assertEquals(a.info.chooseIdentity(), jobState.developer)
+                assertEquals(b.info.chooseIdentity(), jobState.contractor)
             }
         }
     }
@@ -159,7 +167,7 @@ class FlowTests {
                 assertEquals(1, jobStatesAndRefs.size)
 
                 val jobState = jobStatesAndRefs.single().state.data
-                assertEquals(description, jobState.description)
+                assertEquals(milestoneNames, jobState.milestones.toList())
                 assertEquals(MilestoneStatus.STARTED, jobState.status)
                 assertEquals(a.info.chooseIdentity(), jobState.developer)
                 assertEquals(b.info.chooseIdentity(), jobState.contractor)
