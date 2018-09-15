@@ -14,11 +14,11 @@ import java.lang.IllegalStateException
 
 @InitiatingFlow
 @StartableByRPC
-class StartMilestoneFlow (val linearId : UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<SignedTransaction>() {
+class StartMilestoneFlow (val linearId : UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): SignedTransaction {
+    override fun call(): UniqueIdentifier {
         val queryCriteria = QueryCriteria.LinearStateQueryCriteria(
                 linearId = listOf(linearId),
                 status = Vault.StateStatus.UNCONSUMED)
@@ -47,8 +47,9 @@ class StartMilestoneFlow (val linearId : UniqueIdentifier, val milestoneIndex: I
         val sessions = (outputState.participants - ourIdentity).map {initiateFlow(it)}.toSet()
         val fullySignedTransaction = subFlow(CollectSignaturesFlow(partiallySignedTransaction, sessions))
 
-        return subFlow(FinalityFlow(fullySignedTransaction))
+        subFlow(FinalityFlow(fullySignedTransaction))
 
+        return outputState.linearId
     }
 }
 

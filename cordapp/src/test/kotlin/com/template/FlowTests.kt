@@ -36,7 +36,7 @@ class FlowTests {
     @After
     fun tearDown() = network.stopNodes()
 
-    fun agreeJob(): SignedTransaction {
+    fun agreeJob(): UniqueIdentifier {
         val flow = AgreeJobFlow(milestones, b.info.chooseIdentity(), notaryToUse = network.defaultNotaryIdentity)
 
         val resultFuture = a.startFlow(flow)
@@ -44,7 +44,7 @@ class FlowTests {
         return resultFuture.get()
     }
 
-    fun startJob(linearId: UniqueIdentifier, milestoneIndex: Int): SignedTransaction {
+    fun startJob(linearId: UniqueIdentifier, milestoneIndex: Int): UniqueIdentifier {
         val flow = StartMilestoneFlow(linearId, milestoneIndex)
 
         val resultFuture = b.startFlow(flow)
@@ -52,7 +52,7 @@ class FlowTests {
         return resultFuture.get()
     }
 
-    fun finishJob(linearId: UniqueIdentifier, milestoneIndex: Int): SignedTransaction {
+    fun finishJob(linearId: UniqueIdentifier, milestoneIndex: Int): UniqueIdentifier {
         val flow = FinishMilestoneFlow(linearId, milestoneIndex)
 
         val resultFuture = b.startFlow(flow)
@@ -60,7 +60,7 @@ class FlowTests {
         return resultFuture.get()
     }
 
-    fun inspectJob(linearId: UniqueIdentifier, isApproved: Boolean, milestoneIndex: Int): SignedTransaction {
+    fun inspectJob(linearId: UniqueIdentifier, isApproved: Boolean, milestoneIndex: Int): UniqueIdentifier {
         val flow = AcceptOrRejectFlow(linearId, isApproved, milestoneIndex)
 
         val resultFuture = a.startFlow(flow)
@@ -75,7 +75,7 @@ class FlowTests {
         resultFuture.get()
     }
 
-    fun payJob(linearId: UniqueIdentifier, milestoneIndex: Int): SignedTransaction {
+    fun payJob(linearId: UniqueIdentifier, milestoneIndex: Int): UniqueIdentifier {
         val flow = PayFlow(linearId, milestoneIndex)
         val resultFuture = a.startFlow(flow)
         network.runNetwork()
@@ -101,9 +101,7 @@ class FlowTests {
 
     @Test
     fun `golden path start job flow`() {
-        val signedTransaction = agreeJob()
-        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        val linearId = agreeJob()
         startJob(linearId, milestoneIndex)
 
         listOf(a, b).forEach { node ->
@@ -130,9 +128,7 @@ class FlowTests {
 
     @Test
     fun `golden path finish job flow`() {
-        val signedTransaction = agreeJob()
-        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        val linearId = agreeJob()
         startJob(linearId, milestoneIndex)
         finishJob(linearId, milestoneIndex)
 
@@ -160,9 +156,7 @@ class FlowTests {
 
     @Test
     fun `golden path reject job flow`() {
-        val signedTransaction = agreeJob()
-        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        val linearId = agreeJob()
         startJob(linearId, 0)
         finishJob(linearId, 0)
         inspectJob(linearId, false, 0)
@@ -186,9 +180,7 @@ class FlowTests {
 
     @Test
     fun `golden path accept first job flow`() {
-        val signedTransaction = agreeJob()
-        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        val linearId = agreeJob()
         startJob(linearId, 0)
         finishJob(linearId, 0)
         inspectJob(linearId, true, 0)
@@ -213,9 +205,7 @@ class FlowTests {
 
     @Test
     fun `golden path pay first job flow`() {
-        val signedTransaction = agreeJob()
-        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        val linearId = agreeJob()
         startJob(linearId, 0)
         finishJob(linearId, 0)
         inspectJob(linearId, true, 0)
@@ -254,9 +244,7 @@ class FlowTests {
 
     @Test
     fun `golden path pay all jobs flow`() {
-        val signedTransaction = agreeJob()
-        val ledgerTransaction = signedTransaction.toLedgerTransaction(a.services)
-        val linearId = ledgerTransaction.outputsOfType<JobState>().single().linearId
+        val linearId = agreeJob()
         (0..2).forEach { index -> startJob(linearId, index) }
         (0..2).forEach { index -> finishJob(linearId, index) }
         (0..2).forEach { index -> inspectJob(linearId, true, index) }

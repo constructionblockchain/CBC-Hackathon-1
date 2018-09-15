@@ -52,8 +52,8 @@ class CustomController(
         val notary = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(notaryName))
                 ?: return ResponseEntity<Any>("Notary $notaryName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
 
-        proxy.startFlowDynamic(AgreeJobFlow::class.java, milestones, contractor, notary).returnValue.get()
+        val linearId = proxy.startFlowDynamic(AgreeJobFlow::class.java, milestones, contractor, notary).returnValue.get()
 
-        return ResponseEntity<Any>("New job created.", HttpStatus.OK)
+        return ResponseEntity<Any>("New job created with ID ${linearId.id}.", HttpStatus.OK)
     }
 }

@@ -2,6 +2,7 @@ package com.template
 
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.Command
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
@@ -15,12 +16,12 @@ import net.corda.core.utilities.ProgressTracker
 @StartableByRPC
 class AgreeJobFlow(val milestones: List<Milestone>,
                    val contractor: Party,
-                   val notaryToUse: Party) : FlowLogic<SignedTransaction>() {
+                   val notaryToUse: Party) : FlowLogic<UniqueIdentifier>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): SignedTransaction {
+    override fun call(): UniqueIdentifier {
         val jobState = JobState(ourIdentity, contractor, milestones)
 
         val agreeJobCommand = Command(
@@ -38,7 +39,9 @@ class AgreeJobFlow(val milestones: List<Milestone>,
         val fullySignedTransaction = subFlow(CollectSignaturesFlow(
                 partSignedTransaction, listOf(contractorSession)))
 
-        return subFlow(FinalityFlow(fullySignedTransaction))
+        subFlow(FinalityFlow(fullySignedTransaction))
+
+        return jobState.linearId
     }
 }
 

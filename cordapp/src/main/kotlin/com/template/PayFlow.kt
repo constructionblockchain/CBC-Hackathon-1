@@ -13,12 +13,12 @@ import net.corda.finance.contracts.asset.Cash
 
 @InitiatingFlow
 @StartableByRPC
-class PayFlow(private val linearId: UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<SignedTransaction>() {
+class PayFlow(private val linearId: UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): SignedTransaction {
+    override fun call(): UniqueIdentifier {
 
         val criteria = QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))
         val results = serviceHub.vaultService.queryBy<JobState>(criteria)
@@ -51,6 +51,8 @@ class PayFlow(private val linearId: UniqueIdentifier, val milestoneIndex: Int) :
         transactionBuilder.verify(serviceHub)
         val signedTransaction = serviceHub.signInitialTransaction(transactionBuilder, cashSigningKeys + ourIdentity.owningKey)
 
-        return subFlow(FinalityFlow(signedTransaction))
+        subFlow(FinalityFlow(signedTransaction))
+
+        return jobState.linearId
     }
 }
