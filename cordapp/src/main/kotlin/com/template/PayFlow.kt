@@ -36,7 +36,7 @@ class PayFlow(private val linearId: UniqueIdentifier, val milestoneIndex: Int) :
         val jobState = inputState.data.copy(milestones = updatedMilestones)
 
         val payCommand = Command(
-                JobContract.Commands.Pay(),
+                JobContract.Commands.PayMilestone(milestoneIndex),
                 ourIdentity.owningKey
         )
 

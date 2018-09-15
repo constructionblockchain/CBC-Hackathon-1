@@ -42,9 +42,9 @@ class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean, 
             inputState.data.copy(milestones = updatedMilestones)
         }
         val commandType = if (approved) {
-            JobContract.Commands.InspectAndAccept()
+            JobContract.Commands.AcceptMilestone(milestoneIndex)
         } else {
-            JobContract.Commands.InspectAndReject()
+            JobContract.Commands.RejectMilestone(milestoneIndex)
         }
         val command = Command(commandType, listOf(ourIdentity.owningKey))
 

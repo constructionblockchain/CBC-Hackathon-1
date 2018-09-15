@@ -34,7 +34,7 @@ class StartMilestoneFlow (val linearId : UniqueIdentifier, val milestoneIndex: I
 
         val outputState = inputState.copy(milestones = updatedMilestones)
         val signers = inputState.participants.map { it.owningKey }
-        val command = Command(JobContract.Commands.StartJob(), signers)
+        val command = Command(JobContract.Commands.StartMilestone(milestoneIndex), signers)
 
         val transactionBuilder = TransactionBuilder(notary = inputStateAndRef.state.notary)
                 .addInputState(inputStateAndRef)

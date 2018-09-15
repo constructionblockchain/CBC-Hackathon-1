@@ -18,105 +18,169 @@ class JobContract : Contract {
     // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
     // and output states does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
-//        val jobInputs = tx.inputsOfType<JobState>()
-//        val jobOutputs = tx.outputsOfType<JobState>()
-//        val jobCommand = tx.commandsOfType<JobContract.Commands>().single()
-//
-//        when (jobCommand.value) {
-//            is Commands.AgreeJob -> requireThat {
-//                "no inputs should be consumed" using (jobInputs.isEmpty())
-//                "one output should be produced" using (jobOutputs.size == 1)
-//                "amount should not be zero" using (jobOutputs.single().amount.quantity != 0.toLong())
-//
-//                val jobOutput = jobOutputs.single()
-//                "the developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
-//                "the status should be set as unstarted" using (jobOutput.status == MilestoneStatus.UNSTARTED)
-//
-//                // TODO - constraints around the amount
-//
-//                "the developer and contractor are required signer" using
-//                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
-//            }
-//
-//            is Commands.StartJob -> requireThat {
-//                "one input should be consumed" using (jobInputs.size == 1)
-//                "one output should be produced" using (jobOutputs.size == 1)
-//
-//                val jobInput = jobInputs.single()
-//                val jobOutput = jobOutputs.single()
-//                "the input status should be UNSTARTED" using (jobInput.status == MilestoneStatus.UNSTARTED)
-//                "the output status should be STARTED" using (jobOutput.status == MilestoneStatus.STARTED)
-//                "only the job status should change" using (jobOutput == jobInput.copy(status = MilestoneStatus.STARTED))
-//                "the developer and contractor are required signers" using
-//                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
-//            }
-//
-//            is Commands.FinishJob -> requireThat {
-//                "one input should be consumed" using (jobInputs.size == 1)
-//                "one output should be produced" using (jobOutputs.size == 1)
-//
-//                val jobInput = jobInputs.single()
-//                val jobOutput = jobOutputs.single()
-//
-//                "the input status must be set as started" using (jobInputs.single().status == MilestoneStatus.STARTED)
-//                "the output status should be set as finished" using (jobOutputs.single().status == MilestoneStatus.COMPLETED)
-//                "only the status must change" using (jobInput.copy(status = MilestoneStatus.COMPLETED) == jobOutput)
-//
-//                "the contractor should be signer" using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
-//            }
-//
-//            is Commands.InspectAndReject -> requireThat {
-//                "one input should be consumed" using (jobInputs.size == 1)
-//                "one output should be produced" using (jobOutputs.size == 1)
-//
-//                val jobOutput = jobOutputs.single()
-//                val jobInput = jobInputs.single()
-//
-//                "the input status must be set as completed" using (jobInputs.single().status == MilestoneStatus.COMPLETED)
-//                "the output status should be set as rejected" using (jobOutputs.single().status == MilestoneStatus.STARTED)
-//                "only the status must change" using (jobInput.copy(status = MilestoneStatus.STARTED) == jobOutput)
-//
-//                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
-//            }
-//
-//            is Commands.InspectAndAccept -> requireThat {
-//                "one input should be consumed" using (jobInputs.size == 1)
-//                "one output should be produced" using (jobOutputs.size == 1)
-//
-//                val jobOutput = jobOutputs.single()
-//                val jobInput = jobInputs.single()
-//
-//                "the input status must be set as completed" using (jobInputs.single().status == MilestoneStatus.COMPLETED)
-//                "the output status should be set as accepted" using (jobOutputs.single().status == MilestoneStatus.ACCEPTED)
-//                "only the status must change" using (jobInput.copy(status = MilestoneStatus.ACCEPTED) == jobOutput)
-//
-//                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
-//            }
-//
-//            is Commands.Pay -> requireThat {
-//                "one input should be consumed" using (jobInputs.size == 1)
-//                "no output should be produced" using (jobOutputs.isEmpty())
-//
-//                val jobInput = jobInputs.single()
-//                "the input status must be set as completed" using (jobInputs.single().status == MilestoneStatus.ACCEPTED)
-//
-//                "Developer should be a signer" using (jobCommand.signers.contains(jobInput.developer.owningKey))
-//
-//                // TODO - cash based rules
-//            }
-//
-//            else -> throw IllegalArgumentException("Unrecognised command.")
-//        }
+        val jobInputs = tx.inputsOfType<JobState>()
+        val jobOutputs = tx.outputsOfType<JobState>()
+        val jobCommand = tx.commandsOfType<JobContract.Commands>().single()
+
+        when (jobCommand.value) {
+            is Commands.AgreeJob -> requireThat {
+                "No inputs should be consumed" using (jobInputs.isEmpty())
+                "One output should be produced" using (jobOutputs.size == 1)
+
+                val jobOutput = jobOutputs.single()
+                "The developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
+                "The status of all the milestones should be set to unstarted" using
+                        (jobOutput.milestones.all { it.status == MilestoneStatus.UNSTARTED })
+
+                "The developer and contractor are required signer" using
+                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
+            }
+
+            is Commands.StartMilestone -> requireThat {
+                "One JobState input should be consumed." using (jobInputs.size == 1)
+                "One JobState output should be produced." using (jobOutputs.size == 1)
+
+                val jobInput = jobInputs.single()
+                val jobOutput = jobOutputs.single()
+                val milestoneIndex = (jobCommand.value as Commands.StartMilestone).milestoneIndex
+                val inputModifiedMilestone = jobInput.milestones[milestoneIndex]
+                val outputModifiedMilestone = jobOutput.milestones[milestoneIndex]
+
+                "The modified milestone should have an input status of UNSTARTED." using
+                        (inputModifiedMilestone.status == MilestoneStatus.UNSTARTED)
+                "The modified milestone should have an output status of STARTED." using
+                        (outputModifiedMilestone.status == MilestoneStatus.STARTED)
+                "The modified milestone's description and amount shouldn't change." using
+                        (inputModifiedMilestone.copy(status = MilestoneStatus.STARTED) == outputModifiedMilestone)
+
+                val otherInputMilestones = jobInput.milestones.minusElement(inputModifiedMilestone)
+                val otherOutputMilestones = jobOutput.milestones.minusElement(outputModifiedMilestone)
+
+                "All the other milestones should be unmodified." using
+                        (otherInputMilestones == otherOutputMilestones)
+
+                "The developer and contractor are required signers." using
+                        (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
+            }
+
+            is Commands.FinishMilestone -> requireThat {
+                "One JobState input should be consumed." using (jobInputs.size == 1)
+                "One JobState output should be produced." using (jobOutputs.size == 1)
+
+                val jobInput = jobInputs.single()
+                val jobOutput = jobOutputs.single()
+                val milestoneIndex = (jobCommand.value as Commands.FinishMilestone).milestoneIndex
+                val inputModifiedMilestone = jobInput.milestones[milestoneIndex]
+                val outputModifiedMilestone = jobOutput.milestones[milestoneIndex]
+
+                "The modified milestone should have an input status of STARTED." using
+                        (inputModifiedMilestone.status == MilestoneStatus.STARTED)
+                "The modified milestone should have an output status of COMPLETED." using
+                        (outputModifiedMilestone.status == MilestoneStatus.COMPLETED)
+                "The modified milestone's description and amount shouldn't change." using
+                        (inputModifiedMilestone.copy(status = MilestoneStatus.COMPLETED) == outputModifiedMilestone)
+
+                val otherInputMilestones = jobInput.milestones.minusElement(inputModifiedMilestone)
+                val otherOutputMilestones = jobOutput.milestones.minusElement(outputModifiedMilestone)
+
+                "All the other milestones should be unmodified." using
+                        (otherInputMilestones == otherOutputMilestones)
+
+                "The contractor should be signer." using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
+            }
+
+            is Commands.RejectMilestone -> requireThat {
+                "One JobState input should be consumed." using (jobInputs.size == 1)
+                "One JobState output should be produced." using (jobOutputs.size == 1)
+
+                val jobInput = jobInputs.single()
+                val jobOutput = jobOutputs.single()
+                val milestoneIndex = (jobCommand.value as Commands.RejectMilestone).milestoneIndex
+                val inputModifiedMilestone = jobInput.milestones[milestoneIndex]
+                val outputModifiedMilestone = jobOutput.milestones[milestoneIndex]
+
+                "The modified milestone should have an input status of COMPLETED." using
+                        (inputModifiedMilestone.status == MilestoneStatus.COMPLETED)
+                "The modified milestone should have an output status of STARTED." using
+                        (outputModifiedMilestone.status == MilestoneStatus.STARTED)
+                "The modified milestone's description and amount shouldn't change." using
+                        (inputModifiedMilestone.copy(status = MilestoneStatus.STARTED) == outputModifiedMilestone)
+
+                val otherInputMilestones = jobInput.milestones.minusElement(inputModifiedMilestone)
+                val otherOutputMilestones = jobOutput.milestones.minusElement(outputModifiedMilestone)
+
+                "All the other milestones should be unmodified." using
+                        (otherInputMilestones == otherOutputMilestones)
+
+                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
+            }
+
+            is Commands.AcceptMilestone -> requireThat {
+                "One JobState input should be consumed." using (jobInputs.size == 1)
+                "One JobState output should be produced." using (jobOutputs.size == 1)
+
+                val jobInput = jobInputs.single()
+                val jobOutput = jobOutputs.single()
+                val milestoneIndex = (jobCommand.value as Commands.AcceptMilestone).milestoneIndex
+                val inputModifiedMilestone = jobInput.milestones[milestoneIndex]
+                val outputModifiedMilestone = jobOutput.milestones[milestoneIndex]
+
+                "The modified milestone should have an input status of COMPLETED." using
+                        (inputModifiedMilestone.status == MilestoneStatus.COMPLETED)
+                "The modified milestone should have an output status of ACCEPTED." using
+                        (outputModifiedMilestone.status == MilestoneStatus.ACCEPTED)
+                "The modified milestone's description and amount shouldn't change." using
+                        (inputModifiedMilestone.copy(status = MilestoneStatus.ACCEPTED) == outputModifiedMilestone)
+
+                val otherInputMilestones = jobInput.milestones.minusElement(inputModifiedMilestone)
+                val otherOutputMilestones = jobOutput.milestones.minusElement(outputModifiedMilestone)
+
+                "All the other milestones should be unmodified." using
+                        (otherInputMilestones == otherOutputMilestones)
+
+                "Developer should be a signer." using (jobCommand.signers.contains(jobOutput.developer.owningKey))
+            }
+
+            is Commands.PayMilestone -> requireThat {
+                "One JobState input should be consumed." using (jobInputs.size == 1)
+                "One JobState output should be produced." using (jobOutputs.size == 1)
+
+                val jobInput = jobInputs.single()
+                val jobOutput = jobOutputs.single()
+                val milestoneIndex = (jobCommand.value as Commands.PayMilestone).milestoneIndex
+                val inputModifiedMilestone = jobInput.milestones[milestoneIndex]
+                val outputModifiedMilestone = jobOutput.milestones[milestoneIndex]
+
+                "The modified milestone should have an input status of ACCEPTED." using
+                        (inputModifiedMilestone.status == MilestoneStatus.ACCEPTED)
+                "The modified milestone should have an output status of PAID." using
+                        (outputModifiedMilestone.status == MilestoneStatus.PAID)
+                "The modified milestone's description and amount shouldn't change." using
+                        (inputModifiedMilestone.copy(status = MilestoneStatus.PAID) == outputModifiedMilestone)
+
+                val otherInputMilestones = jobInput.milestones.minusElement(inputModifiedMilestone)
+                val otherOutputMilestones = jobOutput.milestones.minusElement(outputModifiedMilestone)
+
+                "All the other milestones should be unmodified." using
+                        (otherInputMilestones == otherOutputMilestones)
+
+                "Developer should be a signer." using (jobCommand.signers.contains(jobInput.developer.owningKey))
+
+                // TODO - cash based rules (e.g. has the right amount been paid?)
+            }
+
+            else -> throw IllegalArgumentException("Unrecognised command.")
+        }
     }
 
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {
         class AgreeJob : Commands
-        class StartJob : Commands
-        class FinishJob : Commands
-        class InspectAndReject : Commands
-        class InspectAndAccept : Commands
-        class Pay : Commands
+        class StartMilestone(val milestoneIndex: Int) : Commands
+        class FinishMilestone(val milestoneIndex: Int) : Commands
+        class RejectMilestone(val milestoneIndex: Int) : Commands
+        class AcceptMilestone(val milestoneIndex: Int) : Commands
+        class PayMilestone(val milestoneIndex: Int) : Commands
     }
 }
 
@@ -129,7 +193,14 @@ data class JobState(
         val milestones: List<Milestone>,
         override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 
+    init {
+        if (milestones.map { it.amount.token }.toSet().size != 1) {
+            throw IllegalArgumentException("All milestones must be budgeted in the same currency.")
+        }
+    }
+
     override val participants = listOf(developer, contractor)
+    val amount = Amount(milestones.map { it.amount.quantity }.sum(), milestones[0].amount.token)
 }
 
 @CordaSerializable

@@ -28,3 +28,5 @@ A CorDapp automating the following construction workflow:
   * Not after final milestone has been completed
   * Not at an earlier stage than the latest completed milestone
 * Allow unfinished milestones to be modified
+* Provide total amount for project, and check milestones values don't exceed this
+* Provide status for overall job so job can be started separately of milestones
