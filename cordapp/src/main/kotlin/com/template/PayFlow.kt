@@ -43,11 +43,6 @@ class PayFlow(private val linearId: UniqueIdentifier) : FlowLogic<SignedTransact
                 .addInputState(inputStateAndRef)
                 .addCommand(payCommand)
 
-
-
-
-        // Stage 7. Get some cash from the vault and add a spend to our transaction builder.
-        // We pay cash to the lenders obligation key.
         val contractor = inputState.data.contractor
         val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, transactionBuilder, inputState.data.amount, contractor)
 
