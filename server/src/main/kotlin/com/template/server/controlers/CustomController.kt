@@ -1,10 +1,9 @@
 package com.template.server.controlers
 
-import com.template.AgreeJobFlow
-import com.template.Milestone
-import com.template.MilestoneStatus
+import com.template.*
 import com.template.server.NodeRPCConnection
 import net.corda.core.contracts.Amount
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -57,15 +56,27 @@ class CustomController(
     @PostMapping(value = "/startmilestone")
     private fun startmilestone(
 
+            @RequestParam("linear-id") linearId: String,
+            @RequestParam("milestone-index") milestoneIndex: Int
+
+
     ): ResponseEntity<*> {
-        return ResponseEntity<Any>("", HttpStatus.OK)
+
+        proxy.startFlowDynamic(StartMilestoneFlow::class.java, UniqueIdentifier.fromString(linearId), milestoneIndex).returnValue.get()
+
+        return ResponseEntity<Any>("Milestone # ${milestoneIndex} started for Job ID ${linearId}.", HttpStatus.OK)
     }
 
     @PostMapping(value = "/finishmilestone")
     private fun finishmilestone(
 
+            @RequestParam("linear-id") linearId: String,
+            @RequestParam("milestone-index") milestoneIndex: Int
+
     ): ResponseEntity<*> {
-        return ResponseEntity<Any>("", HttpStatus.OK)
+        proxy.startFlowDynamic(FinishMilestoneFlow::class.java, UniqueIdentifier.fromString(linearId), milestoneIndex).returnValue.get()
+
+        return ResponseEntity<Any>("Milestone # ${milestoneIndex} finished for Job ID ${linearId}.", HttpStatus.OK)
     }
 
     @PostMapping(value = "/acceptmilestone")
