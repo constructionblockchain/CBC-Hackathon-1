@@ -31,15 +31,15 @@ class CustomController(
             // You pass these lists in the POST body as follows: Description one., Description two., etc.
             // No need for square brackets, enclosing quotes, etc.
             @RequestParam("milestone-descriptions") milestoneDescriptions: List<String>,
-            @RequestParam("milestone-amounts") milestoneAmounts: List<String>,
+            @RequestParam("milestone-quantities") milestoneQuantities: List<String>,
             @RequestParam("milestone-currency") milestoneCurrency: String,
             @RequestParam("contractor") contractorName: String,
             @RequestParam("notary") notaryName: String
     ): ResponseEntity<*> {
-        val descriptionsAndAmounts = milestoneDescriptions.zip(milestoneAmounts)
+        val descriptionsAndQuantities = milestoneDescriptions.zip(milestoneQuantities)
 
-        val milestones = descriptionsAndAmounts.map { (description, amountString) ->
-            val amount = Amount(amountString.toLong(), Currency.getInstance(milestoneCurrency))
+        val milestones = descriptionsAndQuantities.map { (description, quantity) ->
+            val amount = Amount(quantity.toLong(), Currency.getInstance(milestoneCurrency))
             Milestone(description, amount)
         }
 
@@ -50,7 +50,7 @@ class CustomController(
 
         val linearId = proxy.startFlowDynamic(AgreeJobFlow::class.java, milestones, contractor, notary).returnValue.get()
 
-        return ResponseEntity<Any>("New job created with ID ${linearId.id}.", HttpStatus.OK)
+        return ResponseEntity<Any>("New job created with ID ${linearId.id}.", HttpStatus.CREATED)
     }
 
     @PostMapping(value = "/startmilestone")
@@ -95,8 +95,28 @@ class CustomController(
 
     @PostMapping(value = "/paymilestone")
     private fun paymilestone(
-
+            @RequestParam("id") idString: String,
+            @RequestParam("milestone-index") milestoneIndex: Int
     ): ResponseEntity<*> {
-        return ResponseEntity<Any>("", HttpStatus.OK)
+        val id = UniqueIdentifier.fromString(idString)
+
+        val linearId = proxy.startFlowDynamic(PayFlow::class.java, id, milestoneIndex).returnValue.get()
+
+        return ResponseEntity<Any>("Milestone $milestoneIndex of job ${linearId.id} paid.", HttpStatus.CREATED)
+    }
+
+    @PostMapping(value = "/issuecash")
+    private fun issuecash(
+            @RequestParam("quantity") quantity: String,
+            @RequestParam("currency") currency: String,
+            @RequestParam("notary") notaryName: String
+    ): ResponseEntity<*> {
+        val amount = Amount(quantity.toLong(), Currency.getInstance(currency))
+        val notary = proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(notaryName))
+                ?: return ResponseEntity<Any>("Notary $notaryName not found on network.", HttpStatus.INTERNAL_SERVER_ERROR)
+
+        proxy.startFlowDynamic(IssueCashFlow::class.java, amount, notary).returnValue.get()
+
+        return ResponseEntity<Any>("$quantity of $currency issued.", HttpStatus.CREATED)
     }
 }
