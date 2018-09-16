@@ -11,7 +11,7 @@ import net.corda.testing.node.MockServices
 import net.corda.testing.node.ledger
 import org.junit.Test
 
-class FinishJobCommandTests {
+class FinishMilestoneCommandTests {
     private val ledgerServices = MockServices(listOf("com.template"))
     private val developer = TestIdentity(CordaX500Name("John Doe", "City", "GB"))
     private val contractor = TestIdentity(CordaX500Name("Richard Roe", "Town", "GB"))
@@ -106,14 +106,15 @@ class FinishJobCommandTests {
                 command(participants, JobContract.Commands.FinishMilestone(0))
                 input(JobContract.ID, startedJobState)
                 output(JobContract.ID, completedJobState.copy(
-                    milestones = listOf(completedMilestone.copy(description = "Changed milestone description"))))
+                    milestones = listOf(completedMilestone.copy(
+                        description = "Changed milestone description"), otherMilestone)))
                 failsWith("The modified milestone's description and amount shouldn't change.")
             }
             transaction {
                 command(participants, JobContract.Commands.FinishMilestone(0))
                 input(JobContract.ID, startedJobState)
                 output(JobContract.ID, completedJobState.copy(
-                    milestones = listOf(completedMilestone.copy(amount = 200.DOLLARS))))
+                    milestones = listOf(completedMilestone.copy(amount = 200.DOLLARS), otherMilestone)))
                 failsWith("The modified milestone's description and amount shouldn't change.")
             }
         }
