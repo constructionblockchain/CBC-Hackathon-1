@@ -6,17 +6,63 @@ import net.corda.core.serialization.CordaSerializable
 import net.corda.core.transactions.LedgerTransaction
 import java.util.*
 
-// *****************
-// * Contract Code *
-// *****************
+/**
+ * Represents a job organised by a [developer] and carried out by a [contractor]. The job is split into a set of
+ * [milestones].
+ *
+ * @param developer the developer in charge of the job.
+ * @param contractor the contractor carrying out the job.
+ * @param milestones the set of tasks to be completed.
+ */
+data class JobState(
+        val developer: Party,
+        val contractor: Party,
+        val milestones: List<Milestone>,
+        override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
+
+    init {
+        if (milestones.map { it.amount.token }.toSet().size != 1) {
+            throw IllegalArgumentException("All milestones must be budgeted in the same currency.")
+        }
+    }
+
+    override val participants = listOf(developer, contractor)
+}
+
+/**
+ * Represents a milestone in a job.
+ *
+ * @param description the description of the work to be carried out as part of the milestone.
+ * @param amount the amount paid for completing the milestone.
+ * @param status the current status of the milestone.
+ */
+@CordaSerializable
+data class Milestone(
+        val description: String,
+        val amount: Amount<Currency>,
+        val status: MilestoneStatus = MilestoneStatus.UNSTARTED)
+
+@CordaSerializable
+enum class MilestoneStatus { UNSTARTED, STARTED, COMPLETED, ACCEPTED, PAID }
+
+/**
+ * Governs the evolution of [JobState]s.
+ */
 class JobContract : Contract {
-    // This is used to identify our contract when building a transaction
     companion object {
         const val ID = "com.template.JobContract"
     }
 
-    // A transaction is considered valid if the verify() function of the contract of each of the transaction's input
-    // and output states does not throw an exception.
+    interface Commands : CommandData {
+        class AgreeJob : Commands
+        // `milestoneIndex` is the index of the milestone being updated in the list of milestones.
+        class StartMilestone(val milestoneIndex: Int) : Commands
+        class FinishMilestone(val milestoneIndex: Int) : Commands
+        class RejectMilestone(val milestoneIndex: Int) : Commands
+        class AcceptMilestone(val milestoneIndex: Int) : Commands
+        class PayMilestone(val milestoneIndex: Int) : Commands
+    }
+
     override fun verify(tx: LedgerTransaction) {
         val jobInputs = tx.inputsOfType<JobState>()
         val jobOutputs = tx.outputsOfType<JobState>()
@@ -24,15 +70,15 @@ class JobContract : Contract {
 
         when (jobCommand.value) {
             is Commands.AgreeJob -> requireThat {
-                "No inputs should be consumed" using (jobInputs.isEmpty())
-                "One output should be produced" using (jobOutputs.size == 1)
+                "No JobState inputs should be consumed." using (jobInputs.isEmpty())
+                "One JobState output should be produced." using (jobOutputs.size == 1)
 
                 val jobOutput = jobOutputs.single()
-                "The developer should be different to the contractor" using (jobOutput.contractor != jobOutput.developer)
-                "The status of all the milestones should be set to unstarted" using
+                "The developer and the contractor should be different parties." using (jobOutput.contractor != jobOutput.developer)
+                "All the milestones should be unstarted." using
                         (jobOutput.milestones.all { it.status == MilestoneStatus.UNSTARTED })
 
-                "The developer and contractor are required signer" using
+                "The developer and contractor should be required signers." using
                         (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
             }
 
@@ -59,7 +105,7 @@ class JobContract : Contract {
                 "All the other milestones should be unmodified." using
                         (otherInputMilestones == otherOutputMilestones)
 
-                "The developer and contractor are required signers." using
+                "The developer and contractor should be required signers." using
                         (jobCommand.signers.containsAll(listOf(jobOutput.contractor.owningKey, jobOutput.developer.owningKey)))
             }
 
@@ -86,7 +132,7 @@ class JobContract : Contract {
                 "All the other milestones should be unmodified." using
                         (otherInputMilestones == otherOutputMilestones)
 
-                "The contractor should be signer." using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
+                "The contractor should be a required signer." using (jobCommand.signers.contains(jobOutputs.single().contractor.owningKey))
             }
 
             is Commands.RejectMilestone -> requireThat {
@@ -112,7 +158,7 @@ class JobContract : Contract {
                 "All the other milestones should be unmodified." using
                         (otherInputMilestones == otherOutputMilestones)
 
-                "Developer should be a signer" using (jobCommand.signers.contains(jobOutput.developer.owningKey))
+                "The developer should be a required signer." using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
 
             is Commands.AcceptMilestone -> requireThat {
@@ -138,7 +184,7 @@ class JobContract : Contract {
                 "All the other milestones should be unmodified." using
                         (otherInputMilestones == otherOutputMilestones)
 
-                "Developer should be a signer." using (jobCommand.signers.contains(jobOutput.developer.owningKey))
+                "The developer should be a required signer." using (jobCommand.signers.contains(jobOutput.developer.owningKey))
             }
 
             is Commands.PayMilestone -> requireThat {
@@ -164,52 +210,12 @@ class JobContract : Contract {
                 "All the other milestones should be unmodified." using
                         (otherInputMilestones == otherOutputMilestones)
 
-                "Developer should be a signer." using (jobCommand.signers.contains(jobInput.developer.owningKey))
+                "The developer should be a required signer." using (jobCommand.signers.contains(jobInput.developer.owningKey))
 
                 // TODO - cash based rules (e.g. has the right amount been paid?)
             }
 
-            else -> throw IllegalArgumentException("Unrecognised command.")
+            else -> throw IllegalArgumentException("Unrecognised command ${jobCommand.value}.")
         }
     }
-
-    // Used to indicate the transaction's intent.
-    interface Commands : CommandData {
-        class AgreeJob : Commands
-        class StartMilestone(val milestoneIndex: Int) : Commands
-        class FinishMilestone(val milestoneIndex: Int) : Commands
-        class RejectMilestone(val milestoneIndex: Int) : Commands
-        class AcceptMilestone(val milestoneIndex: Int) : Commands
-        class PayMilestone(val milestoneIndex: Int) : Commands
-    }
-}
-
-// *********
-// * State *
-// *********
-data class JobState(
-        val developer: Party,
-        val contractor: Party,
-        val milestones: List<Milestone>,
-        override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
-
-    init {
-        if (milestones.map { it.amount.token }.toSet().size != 1) {
-            throw IllegalArgumentException("All milestones must be budgeted in the same currency.")
-        }
-    }
-
-    override val participants = listOf(developer, contractor)
-    val amount = Amount(milestones.map { it.amount.quantity }.sum(), milestones[0].amount.token)
-}
-
-@CordaSerializable
-data class Milestone(
-        val description: String,
-        val amount: Amount<Currency>,
-        val status: MilestoneStatus = MilestoneStatus.UNSTARTED)
-
-@CordaSerializable
-enum class MilestoneStatus {
-    UNSTARTED, STARTED, COMPLETED, ACCEPTED, PAID
 }
