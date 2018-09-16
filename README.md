@@ -28,7 +28,8 @@ This CorDapp automates the following construction workflow:
 
 * Subjobs/splitting of milestones into tasks
 * Percentage completion and payment
-* Retentions of 5% per milestone that are paid once all milestones are complete
+* Retentions of 5%/3% (allow user to specify) per milestone that are paid once all milestones are complete
+    * Of which 2.5% is paid one year later
 * Map descriptions to BIM XML
 * Architectural drawings as a property
 * Milestone deadlines
@@ -36,9 +37,10 @@ This CorDapp automates the following construction workflow:
 * Allow contractor to reject job
 * Include other legal documents such as tender etc when proposing a job
 * Allow milestone to be added, but
-  * Not after final milestone has been completed
-  * Not at an earlier stage than the latest completed milestone
+    * Not after final milestone has been completed
+    * Not at an earlier stage than the latest completed milestone
 * Allow unfinished milestones to be modified
 * Provide total amount for project, and check milestones values don't exceed this
 * Provide status for overall job so job can be started separately of milestones
 * Capture individual, not just node, who started/reviewed/etc. milestone
+* Include documents as attachments when completing a job

@@ -67,33 +67,3 @@ class AgreeJobFlowResponder(val developerSession: FlowSession) : FlowLogic<Unit>
         subFlow(OurSignTransactionFlow())
     }
 }
-
-
-
-@InitiatingFlow
-@StartableByRPC
-class InitiatorFlow(val counterparty: Party) : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        (0..99).forEach {
-            subFlow(SendMessageFlow(counterparty))
-        }
-    }
-}
-
-@InitiatingFlow
-class SendMessageFlow(val counterparty: Party) : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        val counterpartySession = initiateFlow(counterparty)
-        counterpartySession.send("My payload.")
-    }
-}
-
-@InitiatedBy(SendMessageFlow::class)
-class ResponderFlow(val counterpartySession: FlowSession) : FlowLogic<Unit>() {
-    @Suspendable
-    override fun call() {
-        counterpartySession.receive<String>()
-    }
-}
