@@ -13,12 +13,17 @@ import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import java.lang.IllegalStateException
 
-// *********
-// * Flows *
-// *********
+/**
+ * Change the status of a [Milestone] in a [JobState] from [MilestoneStatus.STARTED] to [MilestoneStatus.COMPLETED].
+ *
+ * Should be run by the contractor.
+ *
+ * @param linearId the [JobState] to update.
+ * @param milestoneIndex the index of the [Milestone] to be updated in the [JobState].
+ */
 @InitiatingFlow
 @StartableByRPC
-class FinishMilestoneFlow(val linearId: UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {
+class CompleteMilestoneFlow(val linearId: UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {
 
     override val progressTracker = ProgressTracker()
 

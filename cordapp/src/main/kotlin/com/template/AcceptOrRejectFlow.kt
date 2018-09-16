@@ -13,9 +13,16 @@ import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import java.lang.IllegalStateException
 
-// *********
-// * Flows *
-// *********
+/**
+ * Change the status of a [Milestone] in a [JobState] from [MilestoneStatus.COMPLETED] to either:
+ *  * [MilestoneStatus.STARTED] if the [Milestone] is considered incomplete and requires additional work
+ *  * [MilestoneStatus.ACCEPTED] if the [Milestone] is considered complete
+ *
+ * Should be run by the developer, who performs the inspection.
+ *
+ * @param linearId the [JobState] to update.
+ * @param milestoneIndex the index of the [Milestone] to be updated in the [JobState].
+ */
 @InitiatingFlow
 @StartableByRPC
 class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {

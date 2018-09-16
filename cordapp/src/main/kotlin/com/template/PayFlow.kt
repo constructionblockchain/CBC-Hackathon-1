@@ -10,6 +10,14 @@ import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import net.corda.finance.contracts.asset.Cash
 
+/**
+ * Change the status of a [Milestone] in a [JobState] from [MilestoneStatus.ACCEPTED] to [MilestoneStatus.PAID].
+ *
+ * Should be run by the developer.
+ *
+ * @param linearId the [JobState] to update.
+ * @param milestoneIndex the index of the [Milestone] to be updated in the [JobState].
+ */
 @InitiatingFlow
 @StartableByRPC
 class PayFlow(private val linearId: UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {

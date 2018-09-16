@@ -9,9 +9,16 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 
-// *********
-// * Flows *
-// *********
+/**
+ * Agree the creation of a [JobState] representing a job organised by a developer and carried out by a [contractor].
+ * The job is split into a set of [milestones].
+ *
+ * Should be run by the developer.
+ *
+ * @param milestones the milestones involved in the job.
+ * @param contractor the contractor carrying out the job.
+ * @param notaryToUse the notary to assign the output state to.
+ */
 @InitiatingFlow
 @StartableByRPC
 class AgreeJobFlow(val milestones: List<Milestone>,

@@ -11,6 +11,12 @@ import net.corda.core.utilities.ProgressTracker
 import net.corda.finance.flows.CashIssueFlow
 import java.util.*
 
+/**
+ * Self-issue cash for demo purposes.
+ *
+ * @param amount the amount to be issued.
+ * @param notaryToUse the notary to assign the output state to.
+ */
 @InitiatingFlow
 @StartableByRPC
 class IssueCashFlow(val amount: Amount<Currency>,

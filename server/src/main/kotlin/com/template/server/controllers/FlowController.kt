@@ -65,7 +65,7 @@ class FlowController(rpc: NodeRPCConnection) {
             @RequestParam("linear-id") linearId: String,
             @RequestParam("milestone-index") milestoneIndex: Int
     ): ResponseEntity<*> {
-        proxy.startFlowDynamic(FinishMilestoneFlow::class.java, UniqueIdentifier.fromString(linearId), milestoneIndex).returnValue.get()
+        proxy.startFlowDynamic(CompleteMilestoneFlow::class.java, UniqueIdentifier.fromString(linearId), milestoneIndex).returnValue.get()
 
         return ResponseEntity<Any>("Milestone # $milestoneIndex finished for Job ID $linearId.", HttpStatus.OK)
     }

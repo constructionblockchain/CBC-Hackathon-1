@@ -52,7 +52,7 @@ class FlowTests {
     }
 
     fun finishJob(linearId: UniqueIdentifier, milestoneIndex: Int): UniqueIdentifier {
-        val flow = FinishMilestoneFlow(linearId, milestoneIndex)
+        val flow = CompleteMilestoneFlow(linearId, milestoneIndex)
 
         val resultFuture = b.startFlow(flow)
         network.runNetwork()
