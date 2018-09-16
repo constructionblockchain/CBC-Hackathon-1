@@ -72,16 +72,24 @@ class FlowController(rpc: NodeRPCConnection) {
 
     @PostMapping(value = "/acceptmilestone")
     private fun acceptmilestone(
-
+        @RequestParam("linear-id") linearId: String,
+        @RequestParam("milestone-index") milestoneIndex: Int
     ): ResponseEntity<*> {
-        return ResponseEntity<Any>("", HttpStatus.OK)
+        val id = UniqueIdentifier.fromString(linearId)
+        proxy.startFlowDynamic(AcceptOrRejectFlow::class.java, id, true, milestoneIndex).returnValue.get()
+        return ResponseEntity<Any>("Job milestone with id $milestoneIndex was successfully accepted!",
+                                   HttpStatus.OK)
     }
 
     @PostMapping(value = "/rejectmilestone")
     private fun rejectmilestone(
-
+        @RequestParam("linear-id") linearId: String,
+        @RequestParam("milestone-index") milestoneIndex: Int
     ): ResponseEntity<*> {
-        return ResponseEntity<Any>("", HttpStatus.OK)
+        val id = UniqueIdentifier.fromString(linearId)
+        proxy.startFlowDynamic(AcceptOrRejectFlow::class.java, id, false, milestoneIndex).returnValue.get()
+        return ResponseEntity<Any>("Job milestone with id $milestoneIndex was successfully rejected!",
+                                   HttpStatus.OK)
     }
 
     @PostMapping(value = "/paymilestone")
