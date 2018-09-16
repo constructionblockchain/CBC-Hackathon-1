@@ -4,6 +4,7 @@ import net.corda.core.contracts.*
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.transactions.LedgerTransaction
+import net.corda.finance.contracts.asset.Cash
 import java.util.*
 
 /**
@@ -210,9 +211,22 @@ class JobContract : Contract {
                 "All the other milestones should be unmodified." using
                         (otherInputMilestones == otherOutputMilestones)
 
-                "The developer should be a required signer." using (jobCommand.signers.contains(jobInput.developer.owningKey))
+                val cashInputs = tx.inputsOfType<Cash.State>()
+                val cashOutputs = tx.outputsOfType<Cash.State>()
+                "The Cash command should be Move" using (tx.commandsOfType<Cash.Commands.Move>().size == 1)
+                val totalOutputCash = cashOutputs.map { it.amount.quantity }.sum()
+                val outputContractorCash = cashOutputs.filter { it.owner == jobOutput.contractor }.map { it.amount.quantity }.sum()
 
-                // TODO - cash based rules (e.g. has the right amount been paid?)
+                "The cash inputs and outputs should all be in the same currency as the modified milestone" using
+                        ((cashInputs + cashOutputs).all { it.amount.token.product == inputModifiedMilestone.amount.token })
+                "The cash inputs and outputs should have the same value" using
+                        (cashInputs.map { it.amount.quantity }.sum() == totalOutputCash)
+                "The cash outputs owned by the contractor should have the same value as the modified milestone" using
+                        (outputContractorCash == outputModifiedMilestone.amount.quantity)
+                // We cannot check that the remaining cash is returned to the developer, as the change outputs use
+                // anonymous public keys.
+
+                "The developer should be a required signer." using (jobCommand.signers.contains(jobInput.developer.owningKey))
             }
 
             else -> throw IllegalArgumentException("Unrecognised command ${jobCommand.value}.")
