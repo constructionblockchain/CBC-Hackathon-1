@@ -3,16 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>Start milestone</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
 </head>
+
 <body>
-    <form action="/flows/startmilestone" method="POST">
-        <label for="linearId">Linear ID</label>
-        <input type="text" id="linearId" name="linear-id">
+    <div class="container">
+        <div class="col-6">
+            <div class="row">
+                <form action="/flows/startmilestone" method="POST">
+                    <div class="form-group">
+                    <label for="linearId">Linear ID</label>
+                    <input type="text" id="linearId" class="form-control" name="linear-id">
+                    </div>
 
-        <label for="milestoneIndex">Milestone Index</label>
-        <input type="number" id="milestoneIndex" name="milestone-index">
+                    <div class="form-group">
+                       <label for="milestoneIndex">Milestone Index</label>
+                       <input type="number" id="milestoneIndex" class="form-control" name="milestone-index">
+                    </div>
 
-        <input type="submit" text="Start milestone">
-    </form>
+                    <input type="submit" class="btn btn-primary" text="Start milestone">
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </body>
 </html>
