@@ -8,6 +8,7 @@ import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.vaultQueryBy
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -24,11 +25,17 @@ class StateController(rpc: NodeRPCConnection) {
 
     private val proxy = rpc.proxy
 
-    @GetMapping(value = "/jobstates")
-    private fun jobStates(): ResponseEntity<List<String>> {
+    @GetMapping(value = "/jobstates", produces = arrayOf(MediaType.APPLICATION_JSON_VALUE))
+    private fun jobStates(): List<Map<String, String>> {
         val jobStatesAndRefs = proxy.vaultQueryBy<JobState>().states
-        val jobStates = jobStatesAndRefs.map { it.state.data.toString() }
-
-        return ResponseEntity(jobStates, HttpStatus.OK)
+        val jobStates = jobStatesAndRefs.map { it.state.data }
+        return jobStates.map { jobState ->
+            mapOf(
+                    "developer" to jobState.developer.toString(),
+                    "contractor" to jobState.contractor.toString(),
+                    "milestones" to jobState.milestones.toString(),
+                    "id" to jobState.linearId.toString()
+            )
+        }
     }
 }
