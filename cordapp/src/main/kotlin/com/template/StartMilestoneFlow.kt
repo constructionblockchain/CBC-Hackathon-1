@@ -22,20 +22,19 @@ import java.lang.IllegalStateException
  */
 @InitiatingFlow
 @StartableByRPC
-class StartMilestoneFlow (val linearId : UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {
+class StartMilestoneFlow(val linearId : UniqueIdentifier, val milestoneIndex: Int) : FlowLogic<UniqueIdentifier>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
     override fun call(): UniqueIdentifier {
         val queryCriteria = QueryCriteria.LinearStateQueryCriteria(
-                linearId = listOf(linearId),
-                status = Vault.StateStatus.UNCONSUMED)
-        val vaultPage = serviceHub.vaultService.queryBy<JobState>(queryCriteria)
-        val inputStateAndRef = vaultPage.states.singleOrNull()
-                ?: throw FlowException("there is no Job with linear id $linearId")
+                linearId = listOf(linearId))
+        val results = serviceHub.vaultService.queryBy<JobState>(queryCriteria)
+        val inputStateAndRef = results.states.singleOrNull()
+                ?: throw FlowException("There is no JobState with linear ID $linearId")
         val inputState = inputStateAndRef.state.data
 
-        if (inputState.contractor != ourIdentity) throw IllegalStateException("Contractor must start this flow.")
+        if (inputState.contractor != ourIdentity) throw IllegalStateException("The contractor must start this flow.")
 
         val updatedMilestones = inputState.milestones.toMutableList()
         updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.STARTED)
@@ -50,6 +49,7 @@ class StartMilestoneFlow (val linearId : UniqueIdentifier, val milestoneIndex: I
                 .addCommand(command)
 
         transactionBuilder.verify(serviceHub)
+
         val partiallySignedTransaction = serviceHub.signInitialTransaction(transactionBuilder)
 
         val sessions = (outputState.participants - ourIdentity).map {initiateFlow(it)}.toSet()

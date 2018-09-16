@@ -39,6 +39,8 @@ class AgreeJobFlow(val milestones: List<Milestone>,
                 .addOutputState(jobState, JobContract.ID)
                 .addCommand(agreeJobCommand)
 
+        transactionBuilder.verify(serviceHub)
+
         val partSignedTransaction =
                 serviceHub.signInitialTransaction(transactionBuilder)
 

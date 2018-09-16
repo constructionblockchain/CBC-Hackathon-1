@@ -3,10 +3,7 @@ package com.template
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.flows.FinalityFlow
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.StartableByRPC
+import net.corda.core.flows.*
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.TransactionBuilder
@@ -31,21 +28,23 @@ class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean, 
 
     @Suspendable
     override fun call(): UniqueIdentifier {
-        val criteria = QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))
-        val results = serviceHub.vaultService.queryBy<JobState>(criteria)
-        val inputStateAndRef = results.states.single()
-        val inputState = inputStateAndRef.state
+        val queryCriteria = QueryCriteria.LinearStateQueryCriteria(
+                linearId = listOf(linearId))
+        val results = serviceHub.vaultService.queryBy<JobState>(queryCriteria)
+        val inputStateAndRef = results.states.singleOrNull()
+                ?: throw FlowException("There is no JobState with linear ID $linearId")
+        val inputState = inputStateAndRef.state.data
 
-        if (inputState.data.developer != ourIdentity) throw IllegalStateException("Developer must start this flow.")
+        if (inputState.developer != ourIdentity) throw IllegalStateException("The developer must start this flow.")
 
         val jobState = if (approved) {
-            val updatedMilestones = inputState.data.milestones.toMutableList()
+            val updatedMilestones = inputState.milestones.toMutableList()
             updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.ACCEPTED)
-            inputState.data.copy(milestones = updatedMilestones)
+            inputState.copy(milestones = updatedMilestones)
         } else {
-            val updatedMilestones = inputState.data.milestones.toMutableList()
+            val updatedMilestones = inputState.milestones.toMutableList()
             updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.STARTED)
-            inputState.data.copy(milestones = updatedMilestones)
+            inputState.copy(milestones = updatedMilestones)
         }
         val commandType = if (approved) {
             JobContract.Commands.AcceptMilestone(milestoneIndex)
@@ -54,13 +53,14 @@ class AcceptOrRejectFlow(val linearId: UniqueIdentifier, val approved: Boolean, 
         }
         val command = Command(commandType, listOf(ourIdentity.owningKey))
 
-        val transactionBuilder = TransactionBuilder(inputState.notary)
+        val transactionBuilder = TransactionBuilder(inputStateAndRef.state.notary)
                 .addInputState(inputStateAndRef)
                 .addOutputState(jobState, JobContract.ID)
                 .addCommand(command)
 
-        val signedTransaction =
-                serviceHub.signInitialTransaction(transactionBuilder)
+        transactionBuilder.verify(serviceHub)
+
+        val signedTransaction = serviceHub.signInitialTransaction(transactionBuilder)
 
         subFlow(FinalityFlow(signedTransaction))
 

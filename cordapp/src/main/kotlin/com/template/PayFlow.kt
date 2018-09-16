@@ -9,6 +9,7 @@ import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import net.corda.finance.contracts.asset.Cash
+import java.lang.IllegalStateException
 
 /**
  * Change the status of a [Milestone] in a [JobState] from [MilestoneStatus.ACCEPTED] to [MilestoneStatus.PAID].
@@ -26,36 +27,36 @@ class PayFlow(private val linearId: UniqueIdentifier, val milestoneIndex: Int) :
 
     @Suspendable
     override fun call(): UniqueIdentifier {
+        val queryCriteria = QueryCriteria.LinearStateQueryCriteria(
+                linearId = listOf(linearId))
+        val results = serviceHub.vaultService.queryBy<JobState>(queryCriteria)
+        val inputStateAndRef = results.states.singleOrNull()
+                ?: throw FlowException("There is no JobState with linear ID $linearId")
+        val inputState = inputStateAndRef.state.data
 
-        val criteria = QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))
-        val results = serviceHub.vaultService.queryBy<JobState>(criteria)
-        val inputStateAndRef = results.states.single()
-        val inputState = inputStateAndRef.state
+        if (inputState.developer != ourIdentity) throw IllegalStateException("The developer must start this flow.")
 
-        check(inputState.data.developer == ourIdentity) {
-            throw FlowException("Payment flow must be initiated by the developer.")
-        }
-
-        val milestoneToUpdate = inputState.data.milestones[milestoneIndex]
-        val updatedMilestones = inputState.data.milestones.toMutableList()
+        val milestoneToUpdate = inputState.milestones[milestoneIndex]
+        val updatedMilestones = inputState.milestones.toMutableList()
         updatedMilestones[milestoneIndex] = milestoneToUpdate.copy(status = MilestoneStatus.PAID)
 
-        val jobState = inputState.data.copy(milestones = updatedMilestones)
+        val jobState = inputState.copy(milestones = updatedMilestones)
 
         val payCommand = Command(
                 JobContract.Commands.PayMilestone(milestoneIndex),
                 ourIdentity.owningKey
         )
 
-        val transactionBuilder = TransactionBuilder(inputState.notary)
+        val transactionBuilder = TransactionBuilder(inputStateAndRef.state.notary)
                 .addInputState(inputStateAndRef)
                 .addOutputState(jobState, JobContract.ID)
                 .addCommand(payCommand)
 
-        val contractor = inputState.data.contractor
+        val contractor = inputState.contractor
         val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, transactionBuilder, milestoneToUpdate.amount, contractor)
 
         transactionBuilder.verify(serviceHub)
+
         val signedTransaction = serviceHub.signInitialTransaction(transactionBuilder, cashSigningKeys + ourIdentity.owningKey)
 
         subFlow(FinalityFlow(signedTransaction))

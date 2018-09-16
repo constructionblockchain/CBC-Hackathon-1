@@ -3,10 +3,7 @@ package com.template
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.flows.FinalityFlow
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.StartableByRPC
+import net.corda.core.flows.*
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.TransactionBuilder
@@ -29,29 +26,32 @@ class CompleteMilestoneFlow(val linearId: UniqueIdentifier, val milestoneIndex: 
 
     @Suspendable
     override fun call(): UniqueIdentifier {
-        val criteria = QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))
-        val results = serviceHub.vaultService.queryBy<JobState>(criteria)
-        val inputStateAndRef = results.states.single()
-        val inputState = inputStateAndRef.state
+        val queryCriteria = QueryCriteria.LinearStateQueryCriteria(
+                linearId = listOf(linearId))
+        val results = serviceHub.vaultService.queryBy<JobState>(queryCriteria)
+        val inputStateAndRef = results.states.singleOrNull()
+                ?: throw FlowException("There is no JobState with linear ID $linearId")
+        val inputState = inputStateAndRef.state.data
 
-        if (inputState.data.contractor != ourIdentity) throw IllegalStateException("Contractor must start this flow.")
+        if (inputState.contractor != ourIdentity) throw IllegalStateException("The contractor must start this flow.")
 
-        val updatedMilestones = inputState.data.milestones.toMutableList()
+        val updatedMilestones = inputState.milestones.toMutableList()
         updatedMilestones[milestoneIndex] = updatedMilestones[milestoneIndex].copy(status = MilestoneStatus.COMPLETED)
 
-        val jobState = inputState.data.copy(milestones = updatedMilestones)
+        val jobState = inputState.copy(milestones = updatedMilestones)
 
         val finishJobCommand = Command(
                 JobContract.Commands.FinishMilestone(milestoneIndex),
                 listOf(ourIdentity.owningKey))
 
-        val transactionBuilder = TransactionBuilder(inputState.notary)
+        val transactionBuilder = TransactionBuilder(inputStateAndRef.state.notary)
                 .addInputState(inputStateAndRef)
                 .addOutputState(jobState, JobContract.ID)
                 .addCommand(finishJobCommand)
 
-        val signedTransaction =
-                serviceHub.signInitialTransaction(transactionBuilder)
+        transactionBuilder.verify(serviceHub)
+
+        val signedTransaction = serviceHub.signInitialTransaction(transactionBuilder)
 
         subFlow(FinalityFlow(signedTransaction))
 
