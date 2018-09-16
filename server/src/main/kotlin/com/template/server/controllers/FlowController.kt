@@ -1,4 +1,4 @@
-package com.template.server.controlers
+package com.template.server.controllers
 
 import com.template.*
 import com.template.server.NodeRPCConnection
@@ -55,28 +55,22 @@ class CustomController(
 
     @PostMapping(value = "/startmilestone")
     private fun startmilestone(
-
             @RequestParam("linear-id") linearId: String,
             @RequestParam("milestone-index") milestoneIndex: Int
-
-
     ): ResponseEntity<*> {
-
         proxy.startFlowDynamic(StartMilestoneFlow::class.java, UniqueIdentifier.fromString(linearId), milestoneIndex).returnValue.get()
 
-        return ResponseEntity<Any>("Milestone # ${milestoneIndex} started for Job ID ${linearId}.", HttpStatus.OK)
+        return ResponseEntity<Any>("Milestone # $milestoneIndex started for Job ID $linearId.", HttpStatus.OK)
     }
 
     @PostMapping(value = "/finishmilestone")
     private fun finishmilestone(
-
             @RequestParam("linear-id") linearId: String,
             @RequestParam("milestone-index") milestoneIndex: Int
-
     ): ResponseEntity<*> {
         proxy.startFlowDynamic(FinishMilestoneFlow::class.java, UniqueIdentifier.fromString(linearId), milestoneIndex).returnValue.get()
 
-        return ResponseEntity<Any>("Milestone # ${milestoneIndex} finished for Job ID ${linearId}.", HttpStatus.OK)
+        return ResponseEntity<Any>("Milestone # $milestoneIndex finished for Job ID $linearId.", HttpStatus.OK)
     }
 
     @PostMapping(value = "/acceptmilestone")
