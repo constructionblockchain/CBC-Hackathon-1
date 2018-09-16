@@ -16,7 +16,7 @@ import java.util.*
  */
 @RestController
 @RequestMapping("/flows") // The paths for GET and POST requests are relative to this base path.
-class CustomController(
+class FlowController(
         private val rpc: NodeRPCConnection
 ) {
 
