@@ -3,25 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>Agree job</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 </head>
 <body>
-    <form action="/flows/agreejob" method="POST">
-        <label for="contractor">Contractor</label>
-        <input type="text" id="contractor" name="contractor">
+    <div class="container">
+        <div class="col-6">
+            <div class="row">
+                <form action="/flows/agreejob" method="POST">
+                    <div class="form-group">
+                        <label for="contractor">Choose your contractor</label>
+                        <input type="text" id="contractor" class="form-control" name="contractor">
+                    </div>
 
-        <label for="notary">Notary</label>
-        <input type="text" id="notary" name="notary">
+                    <div class="form-group">
+                        <label for="notary">Choose your notary</label>
+                        <input type="text" id="notary" class="form-control" name="notary">
+                    </div>
 
-        <label for="milestone-descriptions">Milestone descriptions</label>
-        <input type="text" id="milestone-descriptions" name="milestone-descriptions">
+                    <div class="form-group">
+                        <label for="milestone-descriptions">Milestone descriptions</label>
+                        <input type="text" id="milestone-descriptions" class="form-control" name="milestone-descriptions">
+                    </div>
 
-        <label for="milestone-quantities">Milestone quantities</label>
-        <input type="text" id="milestone-quantities" name="milestone-quantities">
+                    <div class="form-group">
+                        <label for="milestone-quantities">Milestone quantities</label>
+                        <input type="text" id="milestone-quantities" class="form-control" name="milestone-quantities">
+                    </div>
 
-        <label for="milestone-currency">Milestone currency</label>
-        <input type="text" id="milestone-currency" name="milestone-currency">
+                    <div class="form-group">
+                        <label for="milestone-currency">Milestone currency</label>
+                        <input type="text" id="milestone-currency" class="form-control" name="milestone-currency">
+                    </div>
 
-        <input type="submit" text="Agree job">
-    </form>
+                    <input type="submit" class="btn btn-primary" text="Agree job">
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </body>
 </html>
