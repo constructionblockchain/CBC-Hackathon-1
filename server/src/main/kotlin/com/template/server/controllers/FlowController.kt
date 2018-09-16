@@ -16,10 +16,7 @@ import java.util.*
  */
 @RestController
 @RequestMapping("/flows") // The paths for GET and POST requests are relative to this base path.
-class FlowController(
-        private val rpc: NodeRPCConnection
-) {
-
+class FlowController(rpc: NodeRPCConnection) {
     companion object {
         private val logger = LoggerFactory.getLogger(RestController::class.java)
     }

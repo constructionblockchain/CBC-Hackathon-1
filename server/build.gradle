@@ -47,4 +47,11 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 task runPartyAServer(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.template.server.ServerKt'
+    args '--server.port=10010', '--config.rpc.username=user1', '--config.rpc.password=test', '--config.rpc.host=localhost', '--config.rpc.port=10006'
+}
+
+task runPartyBServer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'com.template.server.ServerKt'
+    args '--server.port=10011', '--config.rpc.username=user1', '--config.rpc.password=test', '--config.rpc.host=localhost', '--config.rpc.port=10009'
 }
