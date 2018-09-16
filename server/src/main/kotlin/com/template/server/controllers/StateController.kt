@@ -6,6 +6,7 @@ import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.vaultQueryBy
+import net.corda.finance.contracts.asset.Cash
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -35,6 +36,18 @@ class StateController(rpc: NodeRPCConnection) {
                     "contractor" to jobState.contractor.toString(),
                     "milestones" to jobState.milestones.toString(),
                     "id" to jobState.linearId.toString()
+            )
+        }
+    }
+
+    @GetMapping(value = "/cashstates", produces = arrayOf(MediaType.APPLICATION_JSON_VALUE))
+    private fun cashStates(): List<Map<String, String>> {
+        val cashStatesAndRefs = proxy.vaultQueryBy<Cash.State>().states
+        val cashStates = cashStatesAndRefs.map { it.state.data }
+        return cashStates.map { cashState ->
+            mapOf(
+                    "owner" to cashState.owner.toString(),
+                    "amount" to cashState.amount.toString()
             )
         }
     }
