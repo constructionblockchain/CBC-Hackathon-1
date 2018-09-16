@@ -1,18 +1,14 @@
 package com.template.server.controllers
 
-import com.template.*
+import com.template.JobState
 import com.template.server.NodeRPCConnection
-import net.corda.core.contracts.Amount
-import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.finance.contracts.asset.Cash
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * Define CorDapp-specific endpoints in a controller such as this.

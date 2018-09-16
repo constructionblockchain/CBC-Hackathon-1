@@ -2,7 +2,6 @@ package com.template
 
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.node.services.queryBy
-import net.corda.core.transactions.SignedTransaction
 import net.corda.finance.DOLLARS
 import net.corda.finance.contracts.asset.Cash
 import net.corda.testing.internal.chooseIdentity
