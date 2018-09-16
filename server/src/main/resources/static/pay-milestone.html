@@ -23,5 +23,31 @@
         </div>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script type="text/javascript">
+    $('form').submit(function(e) {
+        var $form = $(this);
+        var url = $form.attr('action');
+
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: $form.serialize(),
+            success: function(data) {
+                $('div.alert').remove();
+                $form.after('<br><div class="alert alert-success" role="alert">' + data + '</div>');
+            },
+            error: function(data) {
+                $('div.alert').remove();
+                $form.after('<br><div class="alert alert-danger" role="alert">There is an error with your request!</div>');
+            }
+        });
+
+        e.preventDefault();
+    });
+</script>
 </body>
 </html>
