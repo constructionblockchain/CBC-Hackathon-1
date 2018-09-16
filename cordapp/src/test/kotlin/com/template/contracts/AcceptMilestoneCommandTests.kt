@@ -11,7 +11,7 @@ import net.corda.testing.node.MockServices
 import net.corda.testing.node.ledger
 import org.junit.Test
 
-class InspectAndAcceptCommandTests {
+class AcceptMilestoneCommandTests {
     private val ledgerServices = MockServices(listOf("com.template"))
     private val developer = TestIdentity(CordaX500Name("John Doe", "City", "GB"))
     private val contractor = TestIdentity(CordaX500Name("Richard Roe", "Town", "GB"))
