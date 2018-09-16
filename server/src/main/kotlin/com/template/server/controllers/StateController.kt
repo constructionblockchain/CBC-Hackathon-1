@@ -25,10 +25,10 @@ class StateController(rpc: NodeRPCConnection) {
     private val proxy = rpc.proxy
 
     @GetMapping(value = "/jobstates")
-    private fun jobStates(): ResponseEntity<List<JobState>> {
+    private fun jobStates(): ResponseEntity<List<String>> {
         val jobStatesAndRefs = proxy.vaultQueryBy<JobState>().states
-        val jobStates = jobStatesAndRefs.map { it.state.data }
+        val jobStates = jobStatesAndRefs.map { it.state.data.toString() }
 
-        return ResponseEntity(jobStates, HttpStatus.CREATED)
+        return ResponseEntity(jobStates, HttpStatus.OK)
     }
 }
