@@ -20,9 +20,9 @@ class StartMilestoneCommandTests {
     private val milestoneTwoStarted  = milestoneTwo.copy(status = MilestoneStatus.STARTED)
     private val participants = listOf(developer.publicKey, contractor.publicKey)
     private val unstartedJobState = JobState(
-            milestones = listOf(milestoneOne, milestoneTwo),
-            developer = developer.party,
-            contractor = contractor.party
+        milestones = listOf(milestoneOne, milestoneTwo),
+        developer = developer.party,
+        contractor = contractor.party
     )
     private val startedJobState = unstartedJobState.copy(milestones = listOf(milestoneOne, milestoneTwoStarted))
     private val milestoneIndex = 1
@@ -106,14 +106,14 @@ class StartMilestoneCommandTests {
                 command(participants, JobContract.Commands.StartMilestone(milestoneIndex))
                 input(JobContract.ID, unstartedJobState)
                 output(JobContract.ID, startedJobState.copy(
-                        milestones = listOf(milestoneOne, milestoneTwoStarted.copy(description = "Fit some floors."))))
+                    milestones = listOf(milestoneOne, milestoneTwoStarted.copy(description = "Fit some floors."))))
                 failsWith("The modified milestone's description and amount shouldn't change.")
             }
             transaction {
                 command(participants, JobContract.Commands.StartMilestone(milestoneIndex))
                 input(JobContract.ID, unstartedJobState)
                 output(JobContract.ID, startedJobState.copy(
-                        milestones = listOf(milestoneOne, milestoneTwoStarted.copy(amount = 300.DOLLARS))))
+                    milestones = listOf(milestoneOne, milestoneTwoStarted.copy(amount = 300.DOLLARS))))
                 failsWith("The modified milestone's description and amount shouldn't change.")
             }
         }
@@ -126,21 +126,21 @@ class StartMilestoneCommandTests {
                 command(participants, JobContract.Commands.StartMilestone(milestoneIndex))
                 input(JobContract.ID, unstartedJobState)
                 output(JobContract.ID, startedJobState.copy(
-                        milestones = listOf(milestoneOne.copy(description = "Fit some floors."), milestoneTwoStarted)))
+                    milestones = listOf(milestoneOne.copy(description = "Fit some floors."), milestoneTwoStarted)))
                 failsWith("All the other milestones should be unmodified.")
             }
             transaction {
                 command(participants, JobContract.Commands.StartMilestone(milestoneIndex))
                 input(JobContract.ID, unstartedJobState)
                 output(JobContract.ID, startedJobState.copy(
-                        milestones = listOf(milestoneOne.copy(amount = 200.DOLLARS), milestoneTwoStarted)))
+                    milestones = listOf(milestoneOne.copy(amount = 200.DOLLARS), milestoneTwoStarted)))
                 failsWith("All the other milestones should be unmodified.")
             }
             transaction {
                 command(participants, JobContract.Commands.StartMilestone(milestoneIndex))
                 input(JobContract.ID, unstartedJobState)
                 output(JobContract.ID, startedJobState.copy(
-                        milestones = listOf(milestoneOne.copy(status = MilestoneStatus.STARTED), milestoneTwoStarted)))
+                    milestones = listOf(milestoneOne.copy(status = MilestoneStatus.STARTED), milestoneTwoStarted)))
                 failsWith("All the other milestones should be unmodified.")
             }
         }
